@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day2Day</title>
+    <link rel="stylesheet" href="css/styles.css"> 
+</head>
+<body>
+  <nav class="top">
+    <span class="logo" onclick="mainMenu()">day2day.exe</span>
+  </nav>
+    <header>
+      <pre>
+        █████                       ████████      █████                                                      
+        ░░███                       ███░░░░███    ░░███                                                       
+      ███████   ██████   █████ ████░░░    ░███  ███████   ██████   █████ ████     ██████  █████ █████  ██████ 
+     ███░░███  ░░░░░███ ░░███ ░███    ███████  ███░░███  ░░░░░███ ░░███ ░███     ███░░███░░███ ░░███  ███░░███
+    ░███ ░███   ███████  ░███ ░███   ███░░░░  ░███ ░███   ███████  ░███ ░███    ░███████  ░░░█████░  ░███████ 
+    ░███ ░███  ███░░███  ░███ ░███  ███      █░███ ░███  ███░░███  ░███ ░███    ░███░░░    ███░░░███ ░███░░░  
+    ░░████████░░████████ ░░███████ ░██████████░░████████░░████████ ░░███████  ██░░██████  █████ █████░░██████ 
+     ░░░░░░░░  ░░░░░░░░   ░░░░░███ ░░░░░░░░░░  ░░░░░░░░  ░░░░░░░░   ░░░░░███ ░░  ░░░░░░  ░░░░░ ░░░░░  ░░░░░░  
+                          ███ ░███                                  ███ ░███                                  
+                         ░░██████                                  ░░██████                                   
+                          ░░░░░░                                    ░░░░░░                                    
+      </pre>
+      <p>track your day 2 day in 1 exe</p>
+      <button onclick="navigateToApp()">skip intro</button>
+    </header>
+    
+      <main id="app">
+        <nav>
+          <button onclick="loadSection('habits')">Habits</button>
+          <button onclick="loadSection('finances')">Finances</button>
+          <button onclick="loadSection('notes')">Notes</button>
+          <button onclick="loadSection('tasks')">Tasks</button>
+          <button onclick="loadSection('folders')">Folders</button>
+          <button onclick="loadSection('user')">Profile</button>
+        </nav>
+        <section id="content"></section>
+      </main>
+    
+      <script src="js/main.js"></script>
+</body>
+</html>
