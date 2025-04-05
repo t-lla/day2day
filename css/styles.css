@@ -1,0 +1,56 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #0d0d0d;
+  color: #00ff99;
+}
+
+nav {
+  border-bottom: 2px solid #00ff99;
+}
+
+.logo {
+  cursor: pointer;
+}
+
+header {
+  border-bottom: 2px solid #00ff99;
+  text-shadow: 0 0 5px #00ff99;
+}
+
+h1, h2, p {
+  margin-bottom: 1rem;
+}
+
+button {
+  background-color: transparent;
+  color: #00ff99;
+  border: 1px solid #00ff99;
+  padding: 0.6rem 1.2rem;
+  margin: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 3px #00ff99;
+}
+
+button:hover {
+  background-color: #00ff99;
+  color: #0d0d0d;
+  box-shadow: 0 0 10px #00ff99;
+}
+
+#content {
+  box-shadow: 0 0 15px #00ff9933;
+}
+
+.hidden {
+  display: none;
+}
