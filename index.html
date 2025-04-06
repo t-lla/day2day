@@ -6,40 +6,59 @@
     <title>Day2Day</title>
     <link rel="stylesheet" href="css/styles.css"> 
 </head>
+
 <body>
-  <nav class="top">
-    <span class="logo" onclick="mainMenu()">day2day.exe</span>
-  </nav>
-    <header>
-      <pre>
-        █████                       ████████      █████                                                      
-        ░░███                       ███░░░░███    ░░███                                                       
-      ███████   ██████   █████ ████░░░    ░███  ███████   ██████   █████ ████     ██████  █████ █████  ██████ 
-     ███░░███  ░░░░░███ ░░███ ░███    ███████  ███░░███  ░░░░░███ ░░███ ░███     ███░░███░░███ ░░███  ███░░███
-    ░███ ░███   ███████  ░███ ░███   ███░░░░  ░███ ░███   ███████  ░███ ░███    ░███████  ░░░█████░  ░███████ 
-    ░███ ░███  ███░░███  ░███ ░███  ███      █░███ ░███  ███░░███  ░███ ░███    ░███░░░    ███░░░███ ░███░░░  
-    ░░████████░░████████ ░░███████ ░██████████░░████████░░████████ ░░███████  ██░░██████  █████ █████░░██████ 
-     ░░░░░░░░  ░░░░░░░░   ░░░░░███ ░░░░░░░░░░  ░░░░░░░░  ░░░░░░░░   ░░░░░███ ░░  ░░░░░░  ░░░░░ ░░░░░  ░░░░░░  
-                          ███ ░███                                  ███ ░███                                  
-                         ░░██████                                  ░░██████                                   
-                          ░░░░░░                                    ░░░░░░                                    
-      </pre>
-      <p>track your day 2 day in 1 exe</p>
-      <button onclick="navigateToApp()">skip intro</button>
-    </header>
-    
+
+  <div class="layout" id="layoutScreen">
+
+
+    <nav class="top">
+      <span class="logo" onclick="mainMenu()">day2day.exe</span>
+    </nav>
+
+
+    <div class="main-area">
+      <aside class="sidebar">
+        <ul class="tree-nav" id="treeNav">
+          <li data-section="habits" onclick="loadSection('habits')">├── Habits</li>
+          <li data-section="finances" onclick="loadSection('finances')">├── Finances</li>
+          <li data-section="notes" onclick="loadSection('notes')">├── Notes</li>
+          <li data-section="tasks" onclick="loadSection('tasks')">├── Tasks</li>
+          <li data-section="folders" onclick="loadSection('folders')">├── Folders</li>
+          <li data-section="profile" onclick="loadSection('profile')">└── Profile</li>
+        </ul>
+      </aside>
+
+
       <main id="app">
-        <nav>
-          <button onclick="loadSection('habits')">Habits</button>
-          <button onclick="loadSection('finances')">Finances</button>
-          <button onclick="loadSection('notes')">Notes</button>
-          <button onclick="loadSection('tasks')">Tasks</button>
-          <button onclick="loadSection('folders')">Folders</button>
-          <button onclick="loadSection('user')">Profile</button>
-        </nav>
-        <section id="content"></section>
+        <div class="portal" id="portalScreen">
+
+          <pre class="ascii-header">
+    █████                       ████████      █████                                                      
+    ░░███                       ███░░░░███    ░░███                                                       
+  ███████   ██████   █████ ████░░░    ░███  ███████   ██████   █████ ████     ██████  █████ █████  ██████ 
+ ███░░███  ░░░░░███ ░░███ ░███    ███████  ███░░███  ░░░░░███ ░░███ ░███     ███░░███░░███ ░░███  ███░░███
+░███ ░███   ███████  ░███ ░███   ███░░░░  ░███ ░███   ███████  ░███ ░███    ░███████  ░░░█████░  ░███████ 
+░███ ░███  ███░░███  ░███ ░███  ███      █░███ ░███  ███░░███  ░███ ░███    ░███░░░    ███░░░███ ░███░░░  
+░░████████░░████████ ░░███████ ░██████████░░████████░░████████ ░░███████  ██░░██████  █████ █████░░██████ 
+ ░░░░░░░░  ░░░░░░░░   ░░░░░███ ░░░░░░░░░░  ░░░░░░░░  ░░░░░░░░   ░░░░░███ ░░  ░░░░░░  ░░░░░ ░░░░░  ░░░░░░  
+                      ███ ░███                                  ███ ░███                                  
+                     ░░██████                                  ░░██████                                   
+                      ░░░░░░                                    ░░░░░░                                    
+          </pre>
+          <p>track your day 2 day in 1 exe</p>
+          <li>> <a onclick="navigateToApp()">skip intro</a></li>
+
+        </div>
+
+
+        <section id="content">
+          
+        </section>
       </main>
+    </div>
+  </div>
     
-      <script src="js/main.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
