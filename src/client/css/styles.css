@@ -1,11 +1,17 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#app-root {
+  height: 100%;
+}
+
 body {
   font-family: 'Courier New', Courier, monospace;
   background-color: #0d0d0d;
-  color: rgb(64 224 125);
-  /* color: #00ff99; */
-  margin: 0;
-  height: 100vh;
-  /* text-shadow: 0 0 10px rgb(64 224 125); */
+  color: rgb(64,224,125);
+  /* text-shadow: 0 0 10px rgb(64, 224, 125); */
 }
 
 .layout {
@@ -20,7 +26,7 @@ body {
   padding: 2px;
   margin: 2px;
   width: 100%;
-  border-bottom: 1px solid rgb(64 224 125);
+  border-bottom: 1px solid rgb(64,224,125);
 }
 
 .logo, .portal li {
@@ -28,22 +34,22 @@ body {
 }
 
 .logo:hover, .portal li:hover {
-  color: rgb(44, 155, 87);
+  color: rgb(44,155,87);
 }
 
 .main-area {
   display: flex;
   flex: 1;
   overflow: hidden;
+  align-items: stretch;
 }
 
 .sidebar {
   width: 200px;
   font-size: 1rem;
-  border-right: 1px solid rgb(64, 224, 125);
+  border-right: 1px solid rgb(64,224,125);
   padding: 1rem;
   overflow-y: auto;
-  height: 100%;
 }
 
 .portal {
@@ -58,7 +64,7 @@ body {
 }
 
 .ascii-header {
-  text-shadow: 0 0 5px rgb(64 224 125);
+  text-shadow: 0 0 5px rgb(64,224,125);
 }
 
 main#app {
@@ -67,20 +73,20 @@ main#app {
   overflow-y: auto;
 }
 
-.tree-nav {
+.tree-side {
   list-style: none;
   padding: 0;
 }
 
-.tree-nav li {
+.tree-side li {
   padding: 0.2rem 0.5rem;
   cursor: pointer;
   white-space: pre;
   font-family: monospace;
 }
 
-.tree-nav li.selected {
-  background-color: rgb(64, 224, 125);
+.tree-side li.selected {
+  background-color: rgb(64,224,125);
   color: #0d0d0d;
 }
 
