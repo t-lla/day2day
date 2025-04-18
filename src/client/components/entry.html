@@ -1,0 +1,69 @@
+<div id="entry-overlay" class="overlay hidden"></div>
+
+<div id="entry-modal" class="modal hidden">
+  <div class="modal-window terminal-modal">
+
+    <div class="terminal-navbar">
+      <div class="terminal-title">day2day.exe user entry</div>
+      <button id="close-entry" class="terminal-close">×</button>
+    </div>
+    
+    <div class="terminal-content">
+
+      <div class="terminal-sidebar">
+        <ul class="terminal-tree">
+          <li data-form="login" class="selected">├── Login</li>
+          <li data-form="signup">└── Sign up</li>
+        </ul>
+      </div>
+      
+
+      <div class="terminal-main">
+
+        <div id="login-form-container" class="terminal-form-container">
+          <h3>> login</h3>
+          <form id="login-form" class="terminal-form">
+            <div class="form-group">
+              <label for="username">username:</label>
+              <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="password">password:</label>
+              <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div id="login-error" class="error-message"></div>
+            
+            <button type="submit" class="terminal-button">login</button>
+          </form>
+        </div>
+        
+
+        <div id="signup-form-container" class="terminal-form-container hidden">
+          <h3>> sign up</h3>
+          <form id="signup-form" class="terminal-form">
+            <div class="form-group">
+              <label for="newUsername">username:</label>
+              <input type="text" id="newUsername" name="newUsername" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="newPassword">password:</label>
+              <input type="password" id="newPassword" name="newPassword" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="confirmPassword">confirm password:</label>
+              <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            
+            <div id="signup-error" class="error-message"></div>
+            
+            <button type="submit" class="terminal-button">register</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

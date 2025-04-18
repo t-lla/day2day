@@ -2,6 +2,7 @@ import { loadComponent } from './loader.js';
 
 let treeItems: HTMLLIElement[] = [];
 let selectedIndex = 0;
+let currentSection: string | null = null;
 
 
 export async function initSidebar(): Promise<void> {
@@ -22,6 +23,18 @@ export async function initSidebar(): Promise<void> {
       const section = item.dataset.section;
       if (section) {
         loadSection(section);
+      }
+      if (!section) return;
+      // if same section clciked twice, close
+      if (currentSection === section) {
+
+        const content = document.getElementById("content")!;
+        content.innerHTML = "";
+        content.classList.add("hidden");
+        currentSection = null;
+      } else { //open
+        loadSection(section);
+        currentSection = section;
       }
     });
     item.addEventListener("mouseover", () => {

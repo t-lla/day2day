@@ -1,3 +1,4 @@
+/* base page styles */
 html, body {
   height: 100%;
   margin: 0;
@@ -14,27 +15,13 @@ body {
   /* text-shadow: 0 0 10px rgb(64, 224, 125); */
 }
 
+/* layout styles */
 .layout {
   display: flex;
   flex-direction: column;
   flex: 1;
   height: 100%;
   overflow: hidden;
-}
-
-.top {
-  padding: 2px;
-  margin: 2px;
-  width: 100%;
-  border-bottom: 1px solid rgb(64,224,125);
-}
-
-.logo, .portal li {
-  cursor: pointer;
-}
-
-.logo:hover, .portal li:hover {
-  color: rgb(44,155,87);
 }
 
 .main-area {
@@ -52,6 +39,45 @@ body {
   overflow-y: auto;
 }
 
+main#app {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* navbar + portal */
+.top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 2px 1rem;
+  margin: 2px;
+  width: 100%;
+  border-bottom: 1px solid rgb(64,224,125);
+  box-sizing: border-box;
+}
+
+.logo {
+  grid-column: 1;
+}
+
+.user-info {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.entry {
+  grid-column: 3;
+}
+
+.logo, .portal li, .entry {
+  cursor: pointer;
+}
+
+.logo:hover, .portal li:hover, .entry:hover {
+  color: rgb(44,155,87);
+}
+
 .portal {
   flex: 1;
   display: flex;
@@ -67,12 +93,149 @@ body {
   text-shadow: 0 0 5px rgb(64,224,125);
 }
 
-main#app {
+/* overlay(opacity to background) */
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* entry */
+.terminal-link {
+  color: rgb(64,224,125);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.terminal-link:hover {
+  color: rgb(44,155,87);
+}
+
+/* Entry modal styles */
+.terminal-modal {
+  display: flex;
+  flex-direction: column;
+  background: #0d0d0d;
+  color: rgb(64,224,125);
+  font-family: 'Courier New', Courier, monospace;
+  border: 1px solid rgb(64,224,125);
+  width: 700px;
+  max-width: 90vw;
+  max-height: 80vh;
+  box-sizing: border-box;
+}
+
+/* faux terminal titlebar with close button */
+.terminal-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgb(64,224,125);
+}
+.terminal-title {
+  font-weight: bold;
+}
+.terminal-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.terminal-close:hover {
+  color: rgb(44,155,87);
+}
+
+/* layout inside terminal: sidebar + main */
+.terminal-content {
+  display: flex;
   flex: 1;
+  overflow: hidden;
+}
+
+/* left “tree” navigation */
+.terminal-sidebar {
+  width: 150px;
+  border-right: 1px solid rgb(64,224,125);
   padding: 1rem;
+}
+.terminal-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.terminal-tree li {
+  padding: 0.5rem;
+  cursor: pointer;
+  white-space: pre;
+}
+.terminal-tree li:hover {
+  color: rgb(44,155,87);
+}
+.terminal-tree li.selected {
+  background-color: rgb(64,224,125);
+  color: #0d0d0d;
+}
+
+/* right content area for forms */
+.terminal-main {
+  flex: 1;
+  padding: 1.5rem;
   overflow-y: auto;
 }
 
+/* form groups inside terminal */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.form-group input {
+  width: 100%;
+  padding: 0.5rem;
+  background: #1a1a1a;
+  color: inherit;
+  border: 1px solid rgb(64,224,125);
+  font-family: inherit;
+}
+
+/* buttons in the terminal */
+.terminal-button {
+  background: none;
+  color: inherit;
+  border: 1px solid rgb(64,224,125);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.terminal-button:hover {
+  background: rgb(64,224,125);
+  color: #0d0d0d;
+}
+
+.error-message {
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+}
+
+/* sidebar */
 .tree-side {
   list-style: none;
   padding: 0;
@@ -95,6 +258,7 @@ main#app {
   padding: 0;
   text-align: center;
 }
+
 
 .hidden {
   display: none;
