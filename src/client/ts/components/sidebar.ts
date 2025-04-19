@@ -19,29 +19,31 @@ export async function initSidebar(): Promise<void> {
   highlightSelection(selectedIndex);
 
   treeItems.forEach((item, index) => {
-    item.addEventListener("click", () => {
-      highlightSelection(index);
-      const section = item.dataset.section;
-      if (section) {
-        loadSection(section);
-      }
-      if (!section) return;
-      // if same section clciked twice, close
-      if (currentSection === section) {
 
-        const content = document.getElementById("content")!;
-        content.innerHTML = "";
-        content.classList.add("hidden");
-        currentSection = null;
-      } else { //open
-        loadSection(section);
-        currentSection = section;
-      }
+    item.addEventListener("click", () => {
+      toggleSectionAt(index);
     });
-    item.addEventListener("mouseover", () => {
-      highlightSelection(index);
-    });
-  });
+  })
+};
+
+function toggleSectionAt(index: number): void {
+  const item = treeItems[index];
+  const section = item?.dataset.section;
+  if (!section) return;
+
+  if (currentSection === section) {
+
+    const content = document.getElementById("content")!;
+    content.innerHTML = "";
+    content.classList.add("hidden");
+    currentSection = null;
+    highlightSelection(-1); //un-highlight
+  } else {
+
+    highlightSelection(index); //highlight
+    loadSection(section);
+    currentSection = section;
+  }
 }
 
 function highlightSelection(index: number): void {
@@ -65,9 +67,5 @@ export function prevSidebarItem(): void {
 
 export function activateSidebarItem(): void {
   if (treeItems.length === 0) return;
-  const item = treeItems[selectedIndex];
-  const section = item.dataset.section;
-  if (section) {
-    loadSection(section);
-  }
+  toggleSectionAt(selectedIndex);
 }
