@@ -2,7 +2,7 @@ import { loadSection } from '../router.js';
 import { loadComponent } from './loader.js';
 
 let treeItems: HTMLLIElement[] = [];
-let selectedIndex = 0;
+let selectedIndex = -1;
 let currentSection: string | null = null;
 
 
