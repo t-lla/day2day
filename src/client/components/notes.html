@@ -1,0 +1,41 @@
+<div class="notes-container">
+    <h2>> notes</h2>
+    
+    <div class="search-container">
+      <input type="text" id="noteSearch" placeholder="looking for something?">
+    </div>
+    
+    <div id="notesList" class="notes-list"> <!-- notes list -->
+
+    </div>
+    
+    <div id="noteViewContainer" class="note-view-container hidden"> <!-- opened note -->
+    </div>
+    
+    <div id="noteFormContainer" class="form-container hidden"> <!-- note form -->
+      <h3>> add note</h3>
+      <form id="noteForm" class="data-form">
+        <div class="form-group">
+          <label for="noteTitle">title</label>
+          <input type="text" id="noteTitle" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="noteContent">content</label>
+          <textarea id="noteContent" rows="10"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="noteTags">tags</label>
+          <input type="text" id="noteTags" placeholder="(comma separated)">
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="action-btn">save</button>
+          <button type="button" id="cancelNoteBtn" class="action-btn">cancel</button>
+        </div>
+      </form>
+    </div>
+    
+    <button id="addNoteBtn" class="add-btn">+ add note</button>
+  </div>

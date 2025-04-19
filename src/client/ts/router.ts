@@ -1,3 +1,5 @@
+import { initNotes } from "./components/notes.js";
+
 export function showMainMenu(): void { //click on logo, back to main layout
   const portal = document.getElementById("portalScreen");
   const content = document.getElementById("content");
@@ -26,4 +28,61 @@ export function navigateToApp(): void { //skip to content(hides portal)
 
 export function initRouter(): void {
 
+}
+
+export function loadSection(section: string): void {
+  const content = document.getElementById("content");
+  if (!content) return;
+
+  switch (section) {
+    case "notes":
+      initNotes();
+      break
+    default:
+      const asciiArt = `
+                               *#***#=                               
+                              *::-==::*                              
+                              *:--==-:*                              
+                             #::-====::#                             
+                             *:--==+=-:#                             
+                            %::-======::%                            
+                            . ======+== .                            
+                           .             .                           
+                           .             .                           
+                          .           .   :                          
+                         .            ..  ..                         
+                         :            ..   :                         
+                        *:: .         ... :=#                        
+                        #:-=========+++*+=::%                        
+                       %::===========++*+=-::%                       
+                       %:-=+====-====++**+=::%                       
+                      %::-==========+++***=-::%                      
+                      %:-=+======-===+++**+=-:%                      
+                     : ===+==========++****=-- :                     
+                     : .::   =+=====++*+ ..::. :.                    
+                    :  :::            .....::.  :                    
+                   :: .::.            .....:::. ::                   
+                   :  :::             .....:::.  :                   
+                  -  .:::             .....::::. :-                  
+                 +%:.:::              .....::::: :%+                 
+             =+*+%::-=+*-             .....:=*+=-:+%+**=             
+          ****+**%::=+**==============+++******==::%*++****          
+      :*******++%.:-=+*=========-=====+++******+=-::%+********-      
+   :************%::==**=========-=====++++******==::%**+*********:   
+   #*********+++.:-=+**===============+++*******+=-::*+**********#   
+   %%%=*********%===**==========-=====+++********===%*+*******+%%%   
+    %%%%%+****++*###*-==========-=====++++*****-*###*+*****+%%%%%    
+       #%%%##-**+***********:.         .:***********+*+-**#%%#       
+          *##***:***********************************:#*****          
+              **###*-***************************=#####*              
+                 *#####.++*****************+*.%####*                 
+                     ####%*=+++++++++++++=*%##%*                     
+                        *#%%%% +==+===.%%%%#*                        
+                           :#%##**+**##%#-                           
+                               #**++*#                                                                                                                                     
+    `;
+  content.innerHTML = `<pre>${asciiArt}</pre><p>> ${section.toUpperCase()} selected.</p>`;
+  }
+  
+  content.classList.remove("hidden");
 }

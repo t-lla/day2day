@@ -259,6 +259,152 @@ main#app {
   text-align: center;
 }
 
+/* notes */
+.notes-container {
+  padding: 1rem;
+}
+
+.search-container {
+  margin-bottom: 1rem;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  color: rgb(64, 224, 125);
+  border: 1px solid rgb(64, 224, 125);
+  font-family: "Courier New", Courier, monospace;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.note-card {
+  border: 1px solid rgb(64, 224, 125);
+  padding: 1rem;
+  cursor: pointer;
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-card:hover {
+  background-color: rgba(64, 224, 125, 0.1);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.note-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.note-date {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.note-preview {
+  flex: 1;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.note-tags {
+  font-size: 0.8rem;
+}
+
+.note-tag {
+  margin-right: 0.5rem;
+  opacity: 0.8;
+}
+
+.note-view {
+  margin-top: 1rem;
+}
+
+.note-view-header {
+  margin-bottom: 2rem;
+}
+
+.note-view-meta {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.note-view-meta span {
+  margin-right: 1rem;
+}
+
+.note-view-tags {
+  margin-top: 0.5rem;
+}
+
+.note-view-content {
+  margin: 1rem 0;
+  line-height: 1.5;
+}
+
+.note-view-actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.form-container {
+  margin-bottom: 2rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.data-form {
+  max-width: 600px;
+}
+
+.add-btn,
+.action-btn {
+  background-color: transparent;
+  color: rgb(64, 224, 125);
+  border: 1px solid rgb(64, 224, 125);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: "Courier New", Courier, monospace;
+  margin-top: 1rem;
+}
+
+.add-btn:hover,
+.action-btn:hover {
+  background-color: rgb(64, 224, 125);
+  color: #0d0d0d;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  color: rgb(64, 224, 125);
+  border: 1px solid rgb(64, 224, 125);
+  font-family: "Courier New", Courier, monospace;
+}
 
 .hidden {
   display: none;
