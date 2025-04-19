@@ -1,4 +1,4 @@
-import { loadSection } from '../router.js';
+import { loadSection, navigateToApp } from '../router.js';
 import { loadComponent } from './loader.js';
 
 let treeItems: HTMLLIElement[] = [];
@@ -16,8 +16,6 @@ export async function initSidebar(): Promise<void> {
   }
   treeItems = Array.from(treeSide.querySelectorAll("li")) as HTMLLIElement[];
 
-  highlightSelection(selectedIndex);
-
   treeItems.forEach((item, index) => {
 
     item.addEventListener("click", () => {
@@ -31,13 +29,18 @@ function toggleSectionAt(index: number): void {
   const section = item?.dataset.section;
   if (!section) return;
 
+  const portal = document.getElementById("portalScreen")!;
+  const content = document.getElementById("content")!;
+
   if (currentSection === section) {
 
-    const content = document.getElementById("content")!;
-    content.innerHTML = "";
-    content.classList.add("hidden");
     currentSection = null;
     highlightSelection(-1); //un-highlight
+    content.innerHTML = "";
+    content.classList.add("hidden");
+    if (portal.classList.contains("hidden")) {
+      navigateToApp();
+    }
   } else {
 
     highlightSelection(index); //highlight
