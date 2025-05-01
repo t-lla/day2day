@@ -1,29 +1,30 @@
-import { nextSidebarItem, prevSidebarItem, activateSidebarItem } from './components/sidebar.js';
-
-export function initGlobalKeyboardNavigation(): void {
+import { nextSidebarItem, prevSidebarItem, activateSidebarItem } from "./components/sidebar/sidebar.controller.js";
+  
+  export function initGlobalKeyboardNavigation(): void {
     document.addEventListener("keydown", (e: KeyboardEvent) => {
-
-    if (
-        document.activeElement && (document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement)
-    ) {
+      if (
+        document.activeElement &&
+        (document.activeElement instanceof HTMLInputElement ||
+          document.activeElement instanceof HTMLTextAreaElement)
+      ) {
         return;
-    }
-
-    switch (e.key) {
+      }
+  
+      switch (e.key) {
         case "ArrowDown":
-            nextSidebarItem();
-            e.preventDefault();
-        break;
+          nextSidebarItem();
+          e.preventDefault();
+          break;
         case "ArrowUp":
-            prevSidebarItem();
-            e.preventDefault();
-        break;
+          prevSidebarItem();
+          e.preventDefault();
+          break;
         case "Enter":
-            activateSidebarItem();
-            e.preventDefault();
-        break;
+          activateSidebarItem();
+          e.preventDefault();
+          break;
         default:
-        break;
-    }
+          break;
+      }
     });
-}
+  }
