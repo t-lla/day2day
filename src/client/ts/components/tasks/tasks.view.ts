@@ -1,12 +1,46 @@
+/**
+ * @packageDocumentation
+ * @module TasksView
+ *
+ * Provides methods for rendering task UI components, including
+ * task lists, forms, and interaction handlers.
+ */
 import { Task } from "../../types.js";
 import { formatDate } from "../../router.js";
 import { loadComponent } from "../loader.js";
 
+/**
+ * TasksView offers static functions to load the tasks template
+ * and manage the DOM updates for listing, filtering, and editing tasks.
+ */
 export class TasksView {
+  /**
+   * Renders the main tasks component into the specified container.
+   * Loads the tasks HTML template for the UI.
+   *
+   * @param selector - CSS selector of the element where the tasks view will be injected.
+   * @returns A promise that resolves when the component is loaded.
+   * @example
+   * await TasksView.render('#content');
+   */
   static async render(selector: string): Promise<void> {
     return loadComponent(selector, "../../components/tasks.html");
   }
 
+  /**
+   * Displays a list of tasks with filtering, sorting, and action callbacks.
+   * Renders tasks based on the current filter and binds event handlers for interactions.
+   *
+   * @param tasks - Array of Task objects to render.
+   * @param filter - Current filter: "all", "active", or "completed".
+   * @param tasksList - The DOM element where the tasks list should be rendered.
+   * @param toggleTaskCompletionCallback - Callback when a task checkbox toggles.
+   * @param editTaskCallback - Callback when edit button clicked.
+   * @param deleteTaskCallback - Callback when delete button clicked.
+   * @example
+   * const tasks = [{ id: "1", title: "new task", ... }];
+   * TasksView.renderTasksList(tasks, 'all', document.getElementById('tasksList'), toggle, edit, delete);
+   */
   static renderTasksList(
     tasks: Task[],
     filter: "all" | "active" | "completed",
@@ -171,6 +205,19 @@ export class TasksView {
     });
   }
 
+  /**
+   * Renders the task creation/edit form with provided default values.
+   * Populates the form with task data or clears it for a new task.
+   *
+   * @param task - The Task object to edit, or null to create a new one.
+   * @param taskFormContainer - The DOM element where the form will be rendered.
+   * @param title - Default title text for the form input.
+   * @param description - Default description text for the textarea.
+   * @param dueDate - Default due date value for the date input.
+   * @param priority - Default priority value for the select input.
+   * @example
+   * TasksView.renderTaskForm(null, document.getElementById('taskFormContainer'), '', '', '', 'low');
+   */
   static renderTaskForm(
     task: Task | null,
     taskFormContainer: HTMLElement | null,
@@ -216,6 +263,14 @@ export class TasksView {
     `;
   }
 
+  /**
+   * Toggles visibility of an element by adding or removing the "hidden" class.
+   *
+   * @param elementId - The ID of the element to show or hide.
+   * @param show - True to show the element; false to hide it.
+   * @example
+   * TasksView.toggleVisibility('tasksList', true);
+   */
   static toggleVisibility(elementId: string, show: boolean): void {
     const element = document.getElementById(elementId);
     if (element) {
@@ -223,6 +278,14 @@ export class TasksView {
     }
   }
 
+  /**
+   * @private
+   * Updates the active filter tab styling based on the current filter.
+   *
+   * @param filter - The current filter: "all", "active", or "completed".
+   * @example
+   * TasksView.setActiveFilter('active');
+   */
   private static setActiveFilter(filter: string): void {
     document
       .getElementById("filterAll")
