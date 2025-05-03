@@ -1,4 +1,9 @@
 /* base page styles */
+:root {
+  --primary-green: rgb(64, 224, 125);
+  --hover-green: rgb(44, 155, 87);
+}
+
 html,
 body {
   height: 100%;
@@ -12,8 +17,8 @@ body {
 body {
   font-family: "Courier New", Courier, monospace;
   background-color: #0d0d0d;
-  color: rgb(64, 224, 125);
-  /* text-shadow: 0 0 10px rgb(64, 224, 125); */
+  color: var(--primary-green);
+  /* text-shadow: 0 0 10px var(--primary-green); */
 }
 
 /* layout styles */
@@ -35,7 +40,7 @@ body {
 .sidebar {
   width: 200px;
   font-size: 1rem;
-  border-right: 1px solid rgb(64, 224, 125);
+  border-right: 1px solid var(--primary-green);
   padding: 1rem;
   overflow-y: auto;
 }
@@ -54,7 +59,7 @@ main#app {
   padding: 2px 1rem;
   margin: 2px;
   width: 100%;
-  border-bottom: 1px solid rgb(64, 224, 125);
+  border-bottom: 1px solid var(--primary-green);
   box-sizing: border-box;
 }
 
@@ -80,7 +85,7 @@ main#app {
 .logo:hover,
 .portal li:hover,
 .entry:hover {
-  color: rgb(44, 155, 87);
+  color: var(--hover-green);
 }
 
 .portal {
@@ -95,7 +100,7 @@ main#app {
 }
 
 .ascii-header {
-  text-shadow: 0 0 5px rgb(64, 224, 125);
+  text-shadow: 0 0 5px var(--primary-green);
 }
 
 /* overlay(opacity to background) */
@@ -122,21 +127,20 @@ main#app {
 
 /* entry */
 .terminal-link {
-  color: rgb(64, 224, 125);
+  color: var(--primary-green);
   text-decoration: underline;
   cursor: pointer;
 }
 .terminal-link:hover {
-  color: rgb(44, 155, 87);
+  color: var(--hover-green);
 }
 
 .terminal-modal {
   display: flex;
   flex-direction: column;
   background: #0d0d0d;
-  color: rgb(64, 224, 125);
-  font-family: "Courier New", Courier, monospace;
-  border: 1px solid rgb(64, 224, 125);
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
   width: 700px;
   max-width: 90vw;
   max-height: 80vh;
@@ -148,7 +152,7 @@ main#app {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid rgb(64, 224, 125);
+  border-bottom: 1px solid var(--primary-green);
 }
 .terminal-title {
   font-weight: bold;
@@ -162,7 +166,7 @@ main#app {
   line-height: 1;
 }
 .terminal-close:hover {
-  color: rgb(44, 155, 87);
+  color: var(--hover-green);
 }
 
 /* layout inside terminal: sidebar + main */
@@ -174,7 +178,7 @@ main#app {
 
 .terminal-sidebar {
   width: 150px;
-  border-right: 1px solid rgb(64, 224, 125);
+  border-right: 1px solid var(--primary-green);
   padding: 1rem;
 }
 .terminal-tree {
@@ -188,10 +192,10 @@ main#app {
   white-space: pre;
 }
 .terminal-tree li:hover {
-  color: rgb(44, 155, 87);
+  color: var(--hover-green);
 }
 .terminal-tree li.selected {
-  background-color: rgb(64, 224, 125);
+  background-color: var(--primary-green);
   color: #0d0d0d;
 }
 
@@ -208,13 +212,12 @@ main#app {
 .terminal-button {
   background: none;
   color: inherit;
-  border: 1px solid rgb(64, 224, 125);
+  border: 1px solid var(--primary-green);
   padding: 0.5rem 1rem;
   cursor: pointer;
-  font-family: inherit;
 }
 .terminal-button:hover {
-  background: rgb(64, 224, 125);
+  background: var(--primary-green);
   color: #0d0d0d;
 }
 
@@ -233,11 +236,10 @@ main#app {
   padding: 0.2rem 0.5rem;
   cursor: pointer;
   white-space: pre;
-  font-family: monospace;
 }
 
 .tree-side li.selected {
-  background-color: rgb(64, 224, 125);
+  background-color: var(--primary-green);
   color: #0d0d0d;
 }
 
@@ -260,9 +262,8 @@ main#app {
   width: 100%;
   padding: 0.5rem;
   background-color: #1a1a1a;
-  color: rgb(64, 224, 125);
-  border: 1px solid rgb(64, 224, 125);
-  font-family: "Courier New", Courier, monospace;
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
 }
 
 .notes-grid {
@@ -273,7 +274,7 @@ main#app {
 }
 
 .note-card {
-  border: 1px solid rgb(64, 224, 125);
+  border: 1px solid var(--primary-green);
   padding: 1rem;
   cursor: pointer;
   height: 200px;
@@ -381,26 +382,25 @@ main#app {
   width: 100%;
   padding: 0.5rem;
   background-color: #1a1a1a;
-  color: rgb(64, 224, 125);
-  border: 1px solid rgb(64, 224, 125);
-  font-family: "Courier New", Courier, monospace;
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
+
 }
 
 /* buttons */
 .add-btn,
 .action-btn {
   background-color: transparent;
-  color: rgb(64, 224, 125);
-  border: 1px solid rgb(64, 224, 125);
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
   padding: 0.5rem 1rem;
   cursor: pointer;
-  font-family: "Courier New", Courier, monospace;
   margin-top: 1rem;
 }
 
 .add-btn:hover,
 .action-btn:hover {
-  background-color: rgb(64, 224, 125);
+  background-color: var(--primary-green);
   color: #0d0d0d;
 }
 
@@ -414,7 +414,7 @@ main#app {
 }
 
 .task-item {
-  border: 1px solid rgb(64, 224, 125);
+  border: 1px solid var(--primary-green);
   padding: 1rem;
   margin-bottom: 1rem;
 }
@@ -440,13 +440,13 @@ main#app {
   appearance: none;
   width: 16px;
   height: 16px;
-  border: 1px solid rgb(64, 224, 125);
+  border: 1px solid var(--primary-green);
   position: relative;
   cursor: pointer;
 }
 
 .task-checkbox:checked {
-  background-color: rgb(64, 224, 125);
+  background-color: var(--primary-green);
 }
 
 .task-checkbox:checked::after {
@@ -481,8 +481,8 @@ main#app {
 }
 
 .task-priority.low {
-  color: rgb(64, 224, 125);
-  border: 1px solid rgb(64, 224, 125);
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
 }
 
 .task-description {
@@ -515,15 +515,14 @@ main#app {
 
 .filter-tab {
   background-color: transparent;
-  color: rgb(64, 224, 125);
-  border: 1px solid rgb(64, 224, 125);
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
   padding: 0.5rem 1rem;
   cursor: pointer;
-  font-family: "Courier New", Courier, monospace;
 }
 
 .filter-tab.active {
-  background-color: rgb(64, 224, 125);
+  background-color: var(--primary-green);
   color: #0d0d0d;
 }
 
