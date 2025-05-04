@@ -1,0 +1,38 @@
+<div class="habits-container">
+  <h2>> habits</h2>
+  
+  <div id="habitsList" class="habits-list"></div>
+  
+  <div id="habitFormContainer" class="form-container hidden">
+    <h3>> add new habit</h3>
+    <form id="habitForm" class="data-form">
+      <div class="form-group">
+        <label for="habitName">name:</label>
+        <input type="text" id="habitName" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="habitDescription">description:</label>
+        <textarea id="habitDescription" rows="3"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="habitFrequency">frequency:</label>
+        <select id="habitFrequency">
+          <option value="daily">daily</option>
+          <option value="weekly">weekly</option>
+          <option value="monthly">monthly</option>
+        </select>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="action-btn">save</button>
+        <button type="button" id="cancelHabitBtn" class="action-btn">cancel</button>
+      </div>
+    </form>
+  </div>
+  
+  <div id="habitStats" class="stats-container"></div>
+  
+  <button id="addHabitBtn" class="add-btn">+ add habit</button>
+</div>

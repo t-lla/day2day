@@ -75,3 +75,13 @@ export interface Task {
   /** Completion status of the task. */
   createdAt: string;
 }
+
+
+export interface Habit {
+  id: string;
+  name: string;
+  description: string;
+  frequency: "daily" | "weekly" | "monthly";
+  completedDates: string[];
+  createdAt: string;
+}
