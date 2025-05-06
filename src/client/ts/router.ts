@@ -7,6 +7,7 @@
  */
 import { initNotes } from "./components/notes/notes.controller.js";
 import { initTasks } from "./components/tasks/tasks.controller.js";
+import { initHabits } from "./components/habits/habits.controller.js";
 import { setPortalVisible } from "./components/sidebar/sidebar.controller.js";
 
 let portalVisible = true;
@@ -58,6 +59,7 @@ export function initRouter(): void {}
  * Loads sections by name.
  * - "notes": initializes the notes feature
  * - "tasks": initializes the tasks feature
+ * - "habits": initializes the habits feature
  * - default: displays ascii art and selection message
  *
  * @param section Identifier of the section to load.
@@ -76,6 +78,9 @@ export function loadSection(section: string): void {
       break;
     case "tasks":
       initTasks();
+      break;
+    case "habits":
+      initHabits();
       break;
     default:
       const asciiArt = `

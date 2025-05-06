@@ -526,6 +526,110 @@ main#app {
   color: #0d0d0d;
 }
 
+/* habits */
+.habits-container {
+  padding: 1rem;
+}
+
+.form-container {
+  margin-bottom: 2rem;
+}
+
+.data-form {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.action-btn,
+.add-btn {
+  background-color: transparent;
+  color: var(--primary-green);
+  border: 1px solid var(--primary-green);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.action-btn:hover,
+.add-btn:hover {
+  background-color: var(--primary-green);
+  color: #0d0d0d;
+}
+
+.habits-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.habits-table th,
+.habits-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(64, 224, 125, 0.3);
+}
+
+.stats-container {
+  margin-top: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-box {
+  border: 1px solid var(--primary-green);
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.stat-label {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.habit-detail {
+  margin-top: 1rem;
+}
+
+.habit-description {
+  margin: 1rem 0;
+}
+
+
+
+
 
 .hidden {
   display: none;
