@@ -25,6 +25,9 @@ export class TasksController {
     this.model = new TasksModel();
   }
 
+  /* Defines property to hold down the task-under-edit. */
+  private editingTask: Task | null = null;
+
   /**
    * Initializes the tasks feature by rendering the view, loading tasks,
    * and binding event listeners for UI controls.
@@ -116,6 +119,12 @@ export class TasksController {
       priority
     );
 
+    const taskForm = document.getElementById("taskForm") as HTMLFormElement;
+    taskForm.addEventListener("submit", e => {
+    e.preventDefault();
+    this.saveTask();
+    });
+
     document.getElementById("cancelTaskBtn")?.addEventListener("click", () => {
       this.showTasksList();
     });
@@ -127,42 +136,37 @@ export class TasksController {
    * Either updates the tasks array and/or persists changes via the model.
    */
   private saveTask(): void {
-    const titleInput = document.getElementById("taskTitle") as HTMLInputElement;
-    const descInput = document.getElementById("taskDescription") as HTMLTextAreaElement;
-    const dueInput = document.getElementById("taskDueDate") as HTMLInputElement;
-    const prioInput = document.getElementById("taskPriority") as HTMLSelectElement;
-    const taskIdInput = document.getElementById("taskId") as HTMLInputElement | null;
+    
+  const titleInput = document.getElementById("taskTitle") as HTMLInputElement;
+  const descInput = document.getElementById("taskDescription") as HTMLTextAreaElement;
+  const dueInput = document.getElementById("taskDueDate") as HTMLInputElement;
+  const prioInput = document.getElementById("taskPriority") as HTMLSelectElement;
 
-    if (taskIdInput?.value) {
-      //edit existing
-      const idx = this.tasks.findIndex((t) => t.id === taskIdInput.value);
-      if (idx !== -1) {
-        this.tasks[idx] = {
-          ...this.tasks[idx],
-          title: titleInput.value,
-          description: descInput.value,
-          dueDate: dueInput.value || null,
-          priority: prioInput.value as Task["priority"],
-        };
-      }
-    } else {
-      //create new
-      const newTask: Task = {
-        id: Date.now().toString(),
-        title: titleInput.value,
-        description: descInput.value,
-        dueDate: dueInput.value || null,
-        priority: prioInput.value as Task["priority"],
-        completed: false,
-        createdAt: new Date().toISOString(),
-      };
-      this.tasks.push(newTask);
-    }
-
-    this.model.saveTasks(this.tasks);
-    this.renderTasks();
-    this.showTasksList();
+  if (this.editingTask) { 
+    //edit existing
+    this.editingTask.title = titleInput.value;
+    this.editingTask.description = descInput.value;
+    this.editingTask.dueDate = dueInput.value || null;
+    this.editingTask.priority = prioInput.value as Task["priority"];
+    this.editingTask = null;
+  } else { 
+    //create new
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: titleInput.value,
+      description: descInput.value,
+      dueDate: dueInput.value || null,
+      priority: prioInput.value as Task["priority"],
+      completed: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.tasks.push(newTask);
   }
+
+  this.model.saveTasks(this.tasks);
+  this.renderTasks();
+  this.showTasksList();
+}
 
   /**
    * @private
@@ -188,7 +192,9 @@ export class TasksController {
    */
   private editTask = (id: string): void => {
     const task = this.tasks.find((t) => t.id === id);
-    if (task) this.showTaskForm(task);
+    if (!task) return;
+    this.editingTask = task;
+    this.showTaskForm(task);
   };
 
   /**
@@ -221,6 +227,20 @@ export class TasksController {
       this.editTask,
       this.deleteTask
     );
+
+    document.getElementById("filterAll")?.addEventListener("click", () => {
+      this.currentFilter = "all";
+      this.renderTasks();
+    });
+    document.getElementById("filterActive")?.addEventListener("click", () => {
+      this.currentFilter = "active";
+      this.renderTasks();
+    });
+    document.getElementById("filterCompleted")?.addEventListener("click", () => {
+      this.currentFilter = "completed";
+      this.renderTasks();
+    });
+    
   }
 }
 

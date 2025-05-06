@@ -98,6 +98,12 @@ export class NotesController {
     const noteFormContainer = document.getElementById("noteFormContainer");
     NotesView.renderNoteForm(note, noteFormContainer, title, content, tags);
 
+    const noteForm = document.getElementById("noteForm") as HTMLFormElement;
+    noteForm.addEventListener("submit", e => {
+    e.preventDefault();
+    this.saveNote();
+    });
+
     const cancelNoteBtn = document.getElementById("cancelNoteBtn");
     cancelNoteBtn?.addEventListener("click", () => {
       this.showNotesList();
