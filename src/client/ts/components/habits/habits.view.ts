@@ -25,6 +25,7 @@ export function renderHabitsList(
 
   habits.forEach(h => {
     const streak = calculateStreak(h);
+    const streakLabel = `${streak} ${h.frequency === "weekly" ? "weeks" : "days"}`;
     const completedToday = h.completedDates.some(d => d.startsWith(todayStr));
     const btnClass = completedToday ? "action-btn completed-btn" : "action-btn complete-btn";
     const btnText = completedToday ? "completed" : "complete";
@@ -33,7 +34,7 @@ export function renderHabitsList(
       <tr data-id="${h.id}">
         <td>${h.name}</td>
         <td>${h.frequency}</td>
-        <td>${streak} days</td>
+        <td>${streakLabel}</td>
         <td>
           <button class="action-btn view-btn">view</button>
           <button class="${btnClass}">${btnText}</button>
