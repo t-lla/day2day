@@ -56,22 +56,66 @@ export function markComplete(id: string, dateISO: string): void {
 }
 
 export function calculateStreak(habit: Habit): number {
-  if (habit.completedDates.length === 0) return 0;
-  const sorted = [...habit.completedDates]
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-  let streak = 1;
-  let cur = new Date(sorted[0]);
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = new Date(sorted[i]);
-    const diff = Math.floor((cur.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff === 1) {
-      streak++;
-      cur = prev;
-    } else {
-      break;
+  const freq = habit.frequency;
+  const completionDates = habit.completedDates
+    .map(d => new Date(d))
+    .sort((a, b) => b.getTime() - a.getTime());
+
+  if (completionDates.length === 0) return 0;
+
+  const now = new Date();
+
+  if (freq === "daily") {
+    // must have completed today
+    const todayStr = now.toISOString().slice(0, 10);
+    if (!habit.completedDates.some(d => d.startsWith(todayStr))) {
+      return 0;
     }
+    let streak = 0;
+    let checkDate = new Date(todayStr);
+    for (const d of completionDates) {
+      const dStr = d.toISOString().slice(0, 10);
+      if (dStr === checkDate.toISOString().slice(0, 10)) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+
+  } else if (freq === "weekly") {
+    function startOfWeek(d: Date) {
+      const date = new Date(d);
+      const day = date.getDay(); // Sun=0, Mon=1, … Sat=6
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      date.setDate(diff);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    let streak = 0;
+    for (let i = 0; ; i++) {
+      const ref = new Date(now);
+      ref.setDate(now.getDate() - i * 7);
+      const weekStart = startOfWeek(ref);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const hit = completionDates.some(d => d >= weekStart && d <= weekEnd);
+      if (hit) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+
+  } else {
+    // fallback: no streak
+    return 0;
   }
-  return streak;
 }
 
 export function toggleComplete(id: string): void {
