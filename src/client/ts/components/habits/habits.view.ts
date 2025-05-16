@@ -60,13 +60,17 @@ export function renderStats(
   completedToday: number
 ) {
   const rate = total > 0 ? Math.round((completedToday / total) * 100) : 0;
-  container.innerHTML = `
+    container.innerHTML = `
     <h3>> stats</h3>
     <div class="stats-grid">
       <div class="stat-box"><div class="stat-value">${total}</div><div class="stat-label">total habits</div></div>
       <div class="stat-box"><div class="stat-value">${completedToday}</div><div class="stat-label">completed today</div></div>
       <div class="stat-box"><div class="stat-value">${rate}%</div><div class="stat-label">completion rate</div></div>
-    </div>`;
+    </div>
+
+    <h3>> progress</h3>
+    <div id="habitHeatmap" class="heatmap-container"></div>`;
+
 }
 
 export function renderHabitDetail(
