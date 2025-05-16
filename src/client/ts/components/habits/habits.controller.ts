@@ -11,6 +11,7 @@ import { loadComponent } from "../loader.js";
 import * as model from "./habits.model.js";
 import * as view from "./habits.view.js";
 import type { Habit } from "../../types.js";
+import * as heatmap from "../../heatmap.js";
 
 /** Controls habit-related functionality and UI updates. */
 export class HabitsController {
@@ -97,6 +98,11 @@ export class HabitsController {
     );
 
     view.renderStats(this.habitStat, all.length, completedCount);
+    
+    const heatmapEl = document.getElementById("habitHeatmap");
+    if (heatmapEl) {
+      heatmap.renderHeatmap(heatmapEl, all);
+    }
   }
 
   /**
