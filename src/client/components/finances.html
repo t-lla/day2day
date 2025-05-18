@@ -1,0 +1,263 @@
+<div class="terminal-section">
+  <div class="section-header">
+    <h2>> finances</h2>
+  </div>
+  
+  <div class="finances-summary">
+    <h3>> financial summary</h3>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-title">total balance</div>
+        <div class="summary-value" id="totalBalance">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-title">monthly income</div>
+        <div class="summary-value" id="monthlyIncome">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-title">monthly expenses</div>
+        <div class="summary-value" id="monthlyExpenses">$0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-title">monthly balance</div>
+        <div class="summary-value" id="monthlyBalance">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="account-selection">
+    <h3>> accounts</h3>
+    <div class="accounts-overview" id="accountsOverview">
+    </div>
+    
+    <div id="accountFormContainer" class="hidden">
+      <h3 id="accountFormTitle">> add account</h3>
+      <form id="accountForm" class="terminal-form">
+        <div class="form-row">
+          <button type="button" id="closeAccountBtn" class="close-btn">×</button>
+        </div>
+        <div class="form-row">
+          <label for="accountName">name:</label>
+          <input type="text" id="accountName" class="terminal-input" required>
+        </div>
+        <div class="form-row">
+          <label for="accountType">type:</label>
+          <select id="accountType" class="terminal-input" required>
+            <option value="debit" selected>Debit</option>
+            <option value="credit">Credit</option>
+            <option value="savings">Savings</option>
+            <option value="cash">Cash</option>
+            <option value="investment">Investment</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="accountBalance">initial balance:</label>
+          <input type="number" id="accountBalance" step="0.01" class="terminal-input" value="0.00" required>
+        </div>
+        <div class="form-row">
+          <label for="accountCurrency">currency:</label>
+          <select id="accountCurrency" class="terminal-input" required>
+            <option value="USD" selected>USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="JPY">JPY (¥)</option>
+            <option value="CAD">CAD ($)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="accountColor">color:</label>
+          <input type="color" id="accountColor" class="terminal-input" value="#40e07d">
+        </div>
+        <div class="form-row">
+          <label for="accountDefault">default:</label>
+          <input type="checkbox" id="accountDefault" class="terminal-checkbox">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="action-btn">save</button>
+          <button type="button" id="cancelAccountBtn" class="action-btn">cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="selected-account-view" id="selectedAccountView">
+
+    <div class="finances-tabs">
+      <button class="tab-btn active" data-tab="transactions">transactions</button>
+      <button class="tab-btn" data-tab="budgets">budgets</button>
+      <button class="tab-btn" data-tab="categories">categories</button>
+    </div>
+
+    <div class="tab-content active" id="transactionsTab">
+      <div class="transactions-header">
+        <h3>> transactions</h3>
+        <div class="transactions-filters">
+          <div class="filter-group">
+            <label for="categoryFilter">filter by category:</label>
+            <select id="categoryFilter" class="terminal-input">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="typeFilter">filter by type:</label>
+            <select id="typeFilter" class="terminal-input">
+              <option value="all">All Types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+              <option value="transfer">Transfer</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div id="transactionFormContainer" class="hidden">
+        <h3>> add transaction</h3>
+        <form id="transactionForm" class="terminal-form">
+          <div class="form-row">
+            <button type="button" id="closeTransactionBtn" class="close-btn">×</button>
+          </div>
+          <div class="form-row">
+            <label for="transactionType">type:</label>
+            <select id="transactionType" class="terminal-input">
+              <option value="income">Income</option>
+              <option value="expense" selected>Expense</option>
+              <option value="transfer">Transfer</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="transactionDate">date:</label>
+            <input type="date" id="transactionDate" class="terminal-input">
+          </div>
+          <div class="form-row">
+            <label for="transactionAmount">amount:</label>
+            <input type="number" id="transactionAmount" step="0.01" min="0.01" class="terminal-input">
+          </div>
+          <div class="form-row">
+            <label for="transactionDescription">description:</label>
+            <input type="text" id="transactionDescription" class="terminal-input">
+          </div>
+          <div class="form-row">
+            <label for="transactionAccount">account:</label>
+            <select id="transactionAccount" class="terminal-input">
+            </select>
+          </div>
+          <div class="form-row" id="toAccountGroup" style="display: none;">
+            <label for="transactionToAccount">to account:</label>
+            <select id="transactionToAccount" class="terminal-input">
+            </select>
+          </div>
+          <div class="form-row" id="categoryGroup">
+            <label for="transactionCategory">category:</label>
+            <select id="transactionCategory" class="terminal-input">
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="transactionRecurring">recurring:</label>
+            <input type="checkbox" id="transactionRecurring" class="terminal-checkbox">
+          </div>
+          <div class="form-row" id="recurringFrequencyGroup" style="display: none;">
+            <label for="recurringFrequency">frequency:</label>
+            <select id="recurringFrequency" class="terminal-input">
+              <option value="monthly" selected>Monthly</option>
+              <option value="weekly">Weekly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="action-btn">save</button>
+            <button type="button" id="cancelTransactionBtn" class="action-btn">cancel</button>
+          </div>
+        </form>
+      </div>
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>date</th>
+            <th>description</th>
+            <th>category</th>
+            <th>amount</th>
+            <th>actions</th>
+          </tr>
+        </thead>
+        <tbody id="transactionsBody">
+        </tbody>
+      </table>
+      <button class="action-btn" id="addTransactionBtn">+ add transaction</button>
+    </div>
+
+    <div class="tab-content" id="budgetsTab">
+      <h3>> budgets</h3>
+      <div id="budgetFormContainer" class="hidden">
+        <h3>> edit budgets</h3>
+        <form id="budgetForm" class="terminal-form">
+          <div class="form-row">
+            <button type="button" id="closeBudgetBtn" class="close-btn">×</button>
+          </div>
+          <div id="budgetFormFields">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="action-btn">save</button>
+            <button type="button" id="cancelBudgetBtn" class="action-btn">cancel</button>
+          </div>
+        </form>
+      </div>
+      <div class="budgets-container">
+        <div id="budgetsList">
+        </div>
+        <button class="action-btn" id="editBudgetsBtn">edit budgets</button>
+      </div>
+    </div>
+
+    <div class="tab-content" id="categoriesTab">
+      <h3>> categories</h3>
+      <div id="categoryFormContainer" class="hidden">
+        <h3 id="categoryFormTitle">> add category</h3>
+        <form id="categoryForm" class="terminal-form">
+          <div class="form-row">
+            <button type="button" id="closeCategoryBtn" class="close-btn">×</button>
+          </div>
+          <div class="form-row">
+            <label for="categoryName">name:</label>
+            <input type="text" id="categoryName" class="terminal-input" required>
+          </div>
+          <div class="form-row">
+            <label for="categoryType">type:</label>
+            <select id="categoryType" class="terminal-input" required>
+              <option value="income">Income</option>
+              <option value="expense" selected>Expense</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="categoryColor">color:</label>
+            <input type="color" id="categoryColor" class="terminal-input" value="#40e07d">
+          </div>
+          <div class="form-row" id="fixedExpenseGroup">
+            <label for="categoryFixed">fixed expense:</label>
+            <input type="checkbox" id="categoryFixed" class="terminal-checkbox">
+          </div>
+          <div class="form-row" id="monthlyBudgetGroup">
+            <label for="categoryBudget">monthly budget:</label>
+            <input type="number" id="categoryBudget" step="0.01" min="0" class="terminal-input" value="0.00">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="action-btn">save</button>
+            <button type="button" id="cancelCategoryBtn" class="action-btn">cancel</button>
+          </div>
+        </form>
+      </div>
+      <div class="categories-container">
+        <div class="categories-section">
+          <h4>> income categories</h4>
+          <div id="incomeCategories" class="categories-list">
+          </div>
+        </div>
+        <div class="categories-section">
+          <h4>> expense categories</h4>
+          <div id="expenseCategories" class="categories-list">
+          </div>
+        </div>
+      </div>
+      <button class="action-btn" id="addCategoryBtn">+ add category</button>
+    </div>
+  </div>
+</div>

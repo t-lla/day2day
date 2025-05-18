@@ -5,62 +5,80 @@
  * Provides navigation logic for displaying sections of the application,
  * handling portal visibility and formatting dates.
  */
-import { initNotes } from "./components/notes/notes.controller.js";
-import { initTasks } from "./components/tasks/tasks.controller.js";
-import { initHabits } from "./components/habits/habits.controller.js";
-import { setPortalVisible } from "./components/sidebar/sidebar.controller.js";
+import { initNotes } from "./components/notes/notes.controller.js"
+import { initTasks } from "./components/tasks/tasks.controller.js"
+import { initHabits } from "./components/habits/habits.controller.js"
+import { setPortalVisible } from "./components/sidebar/sidebar.controller.js"
+import { initFinances } from "./components/finances/finances.controller.js"
+import { initSectionSelector } from "./components/section-selector/section-selector.controller.js"
+import { renderMiniHeader, hideMiniHeader } from "./components/mini-header.js"
 
-let portalVisible = true;
+let portalVisible = true
+let currentSection: string | null = null
 
 /**
  * Displays the main menu by showing the portal screen and hiding any other content.
  * Resets portal visibility state to the intro screen.
  */
 export function showMainMenu(): void {
-  const portal = document.getElementById("portalScreen");
-  const content = document.getElementById("content");
+  const portal = document.getElementById("portalScreen")
+  const content = document.getElementById("content")
+  const miniHeader = document.getElementById("miniHeader")
+
   if (portal) {
-    portal.classList.remove("hidden");
+    portal.classList.remove("hidden")
   }
   if (content) {
-    content.classList.add("hidden");
-    content.innerHTML = "";
+    content.classList.add("hidden")
+    content.innerHTML = ""
   }
-  portalVisible = true;
-  setPortalVisible(true);
+  if (miniHeader) {
+    miniHeader.classList.add("hidden")
+  }
+
+  portalVisible = true
+  currentSection = null
+  setPortalVisible(true)
 }
 
 /**
- * Hides the portal screen and shows content. If content is empty, displays a placeholder message.
+ * Hides the portal screen and shows content. If content is empty, displays the section selector.
  * Updates portal visibility state.
  */
 export function navigateToApp(): void {
-  const portal = document.getElementById("portalScreen");
-  const content = document.getElementById("content");
+  const portal = document.getElementById("portalScreen")
+  const content = document.getElementById("content")
+
   if (portal) {
-    portal.classList.add("hidden");
+    portal.classList.add("hidden")
   }
   if (content) {
-    content.classList.remove("hidden");
+    content.classList.remove("hidden")
     if (!content.innerHTML.trim()) {
-      content.innerHTML = `<p>> now what? </p>`;
+      initSectionSelector()
     }
   }
-  portalVisible = false;
-  setPortalVisible(false);
+
+  portalVisible = false
+  setPortalVisible(false)
 }
 
 /**
- * Placeholder for router initialization logic.
+ * Initializes the router and sets up event listeners.
  */
-export function initRouter(): void {}
+export function initRouter(): void {
+  // Initialize event listeners for section navigation
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement
+    if (target.classList.contains("skip-intro")) {
+      navigateToApp()
+    }
+  })
+}
 
 /**
  * Loads sections by name.
- * - "notes": initializes the notes feature
- * - "tasks": initializes the tasks feature
- * - "habits": initializes the habits feature
- * - default: displays ascii art and selection message
+ * If the section is already active, it will show the section selector instead.
  *
  * @param section Identifier of the section to load.
  * @throws Will throw an error if the content element is not found.
@@ -68,68 +86,51 @@ export function initRouter(): void {}
  * loadSection('tasks');
  */
 export function loadSection(section: string): void {
-  const content = document.getElementById("content");
-  if (!content) 
-    throw new Error("Content container not found");
+  const content = document.getElementById("content")
+  const portal = document.getElementById("portalScreen")
 
-  switch (section) {
-    case "notes":
-      initNotes();
-      break;
-    case "tasks":
-      initTasks();
-      break;
-    case "habits":
-      initHabits();
-      break;
-    default:
-      const asciiArt = `
-                               *#***#=
-                              *::-==::*
-                              *:--==-:*
-                             #::-====::#
-                             *:--==+=-:#
-                            %::-======::%
-                            . ======+== .
-                           .             .
-                           .             .
-                          .           .   :
-                         .            ..  ..
-                         :            ..   :
-                        *:: .         ... :=#
-                        #:-=========+++*+=::%
-                       %::===========++*+=-::%
-                       %:-=+====-====++**+=::%
-                      %::-==========+++***=-::%
-                      %:-=+======-===+++**+=-:%%
-                     : ===+==========++****=-- :
-                     : .::   =+=====++*+ ..::. :.
-                    :  :::            .....::.  :
-                   :: .::.            .....:::. ::
-                   :  :::             .....:::.  :
-                  -  .:::             .....::::. :-
-                 +%:.:::              .....::::: :%+
-             =+*+%::-=+*-             .....:=*+=-:+%+**=
-          ****+**%::=+**==============+++******==::%*++****
-      :*******++%.:-=+*=========-=====+++******+=-::%+********-
-   :************%::==**=========-=====++++******==::%**+*********:
-   #*********+++.:-=+**===============+++*******+=-::*+**********#
-   %%%=*********%===**==========-=====+++********===%*+*******+%%%
-    %%%%%+****++*###*-==========-=====++++*****-*###*+*****+%%%%%
-       #%%%##-**+***********:.         .:***********+*+-**#%%#
-          *##***:***********************************:#*****
-              **###*-***************************=#####*
-                 *#####.++*****************+*.%####*
-                     ####%*=+++++++++++++=*%##%*
-                        *#%%%% +==+===.%%%%#*
-                           :#%##**+**##%#-
-                               #**++*#
+  if (!content) throw new Error("Content container not found")
 
-    `;
-      content.innerHTML = `<pre>${asciiArt}</pre><p>> ${section.toUpperCase()} selected.</p>`;
+  // If portal is visible, hide it
+  if (portal && !portal.classList.contains("hidden")) {
+    portal.classList.add("hidden")
+    portalVisible = false
+    setPortalVisible(false)
   }
 
-  content.classList.remove("hidden");
+  // If clicking the same section twice, show the section selector
+  if (section === currentSection) {
+    currentSection = null
+    hideMiniHeader()
+    initSectionSelector()
+    return
+  }
+
+  // Update current section
+  currentSection = section
+
+  // Show mini header with current section
+  renderMiniHeader(section)
+
+  // Load the appropriate section
+  switch (section) {
+    case "notes":
+      initNotes()
+      break
+    case "tasks":
+      initTasks()
+      break
+    case "habits":
+      initHabits()
+      break
+    case "finances":
+      initFinances()
+      break
+    default:
+      initSectionSelector()
+  }
+
+  content.classList.remove("hidden")
 }
 
 /**
@@ -142,9 +143,9 @@ export function loadSection(section: string): void {
  * console.log(formatDate(date)); // '03/05/2025'
  */
 export function formatDate(date: Date): string {
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
+  const day = date.getDate().toString().padStart(2, "0")
+  const month = (date.getMonth() + 1).toString().padStart(2, "0")
+  const year = date.getFullYear()
 
-  return `${day}/${month}/${year}`;
+  return `${day}/${month}/${year}`
 }
