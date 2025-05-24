@@ -1,4 +1,3 @@
-// ts/heatmap.ts
 /**
  * @packageDocumentation
  * @module Heatmap
@@ -205,7 +204,7 @@ export function renderHeatmap(
   today.setHours(0, 0, 0, 0)
 
   const startDate = new Date(firstDay)
-  const firstDayOfWeek = (firstDay.getDay() + 6) % 7 //Monday-based week
+  const firstDayOfWeek = (firstDay.getDay() + 6) % 7 //monday-based week
   startDate.setDate(startDate.getDate() - firstDayOfWeek)
 
   const endDate = new Date(lastDay)

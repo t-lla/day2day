@@ -129,6 +129,7 @@ export class HabitsController {
    */
   private handleToggleComplete(id: string): void {
     model.toggleComplete(id);
+    document.dispatchEvent(new CustomEvent("habitCompletionChanged", { detail: { habitId: id } }));
     this.renderList();
   }
 }

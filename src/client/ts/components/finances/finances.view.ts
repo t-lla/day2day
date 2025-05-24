@@ -131,7 +131,7 @@ export class FinancesView {
         return `
           <tr data-id="${transaction.id}">
             <td>${formattedDate}</td>
-            <td>${transaction.description || "??"}</td>
+            <td>${transaction.description || "unnamed"}</td>
             <td>${isTransfer ? "Transfer" : category?.name || "Uncategorized"}</td>
             <td class="${isIncome ? "positive" : "negative"}">${isIncome ? "+" : "-"}$${transaction.amount.toFixed(2)}</td>
             <td>
@@ -446,7 +446,7 @@ export class FinancesView {
       nameInput.value = account.name
       typeSelect.value = account.type
       balanceInput.value = account.balance.toString()
-      balanceInput.disabled = true // Can't edit balance directly
+      balanceInput.disabled = true
       currencySelect.value = account.currency
       colorInput.value = account.color || "#40e07d"
       defaultCheckbox.checked = account.isDefault || false
@@ -558,7 +558,7 @@ export class FinancesView {
     if (isEdit && category) {
       nameInput.value = category.name
       typeSelect.value = category.type
-      typeSelect.disabled = true // Can't change type after creation
+      typeSelect.disabled = true
       colorInput.value = category.color || "#40e07d"
       fixedCheckbox.checked = category.isFixed || false
       budgetInput.value = category.monthlyBudget?.toString() || "0.00"
