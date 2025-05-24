@@ -82,8 +82,8 @@ export interface Task {
  * @example
  * const habit: Habit = {
  *   id: "1",
- *   name: "Daily Exercise",
- *   description: "30 minutes of cardio",
+ *   name: "new habit",
+ *   description: "habit content",
  *   frequency: "daily",
  *   completedDates: ["2025-05-01", "2025-05-02"],
  *   createdAt: "2025-05-01T10:00:00Z"
@@ -115,7 +115,7 @@ export interface Habit {
  * @example
  * const account: Account = {
  *   id: "1",
- *   name: "Main Checking",
+ *   name: "1st account",
  *   type: "debit",
  *   balance: 1500.50,
  *   color: "#40e07d",
@@ -151,8 +151,8 @@ export interface Account {
  *
  * @example
  * const category: Category = {
- *   id: "expense-food",
- *   name: "Food",
+ *   id: "new-category",
+ *   name: "new category",
  *   type: "expense",
  *   color: "#ff6b6b",
  *   isFixed: false,
@@ -186,11 +186,11 @@ export interface Category {
  * const transaction: Transaction = {
  *   id: "1",
  *   date: "2025-05-01T10:00:00Z",
- *   description: "Grocery shopping",
+ *   description: "new transaction",
  *   amount: 85.75,
  *   type: "expense",
- *   categoryId: "expense-food",
- *   accountId: "checking-account",
+ *   categoryId: "new-category",
+ *   accountId: "1st account",
  *   isRecurring: false
  * };
  */
@@ -231,7 +231,7 @@ export interface Transaction {
  *
  * @example
  * const budget: Budget = {
- *   categoryId: "expense-food",
+ *   categoryId: "new-category",
  *   month: 4, // May (0-indexed)
  *   year: 2025,
  *   amount: 300

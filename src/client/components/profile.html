@@ -1,0 +1,148 @@
+<div class="profile-container">
+  <h2>> profile</h2>
+
+  <div class="profile-section">
+    <h3>> user information</h3>
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <div class="avatar-placeholder">
+            <span id="avatarInitial"></span>
+          </div>
+        </div>
+        <div class="profile-info">
+          <div class="profile-username" id="profileUsername"></div>
+          <div class="profile-email" id="profileEmail"></div>
+          <div class="profile-joined">member since: <span id="profileJoined"></span></div>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button id="editUsernameBtn" class="action-btn">change username</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="usernameFormContainer" class="form-container hidden">
+    <h3>> change username</h3>
+    <form id="usernameForm" class="data-form">
+      <div class="form-group">
+        <label for="newUsername">new username</label>
+        <input type="text" id="newUsername" required>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="action-btn">save</button>
+        <button type="button" id="cancelUsernameBtn" class="action-btn">cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="profile-section">
+    <h3>> appearance</h3>
+    <div class="theme-selector">
+      <div class="theme-option">
+        <input type="radio" id="themeDark" name="theme" value="dark" checked>
+        <label for="themeDark" class="theme-label">
+          <div class="theme-preview dark-preview"></div>
+          <span>dark mode</span>
+        </label>
+      </div>
+      <div class="theme-option">
+        <input type="radio" id="themeLight" name="theme" value="light">
+        <label for="themeLight" class="theme-label">
+          <div class="theme-preview light-preview"></div>
+          <span>light mode</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <h3>> progress summary</h3>
+    <div class="progress-grid">
+      <div class="progress-card">
+        <div class="progress-header">
+          <h4>habits</h4>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-stat">
+            <div class="stat-label">total habits:</div>
+            <div class="stat-value" id="habitsTotal">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">completed today:</div>
+            <div class="stat-value" id="habitsCompleted">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">completion rate:</div>
+            <div class="stat-value" id="habitsRate">0%</div>
+          </div>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="habitsProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-header">
+          <h4>tasks</h4>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-stat">
+            <div class="stat-label">total tasks:</div>
+            <div class="stat-value" id="tasksTotal">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">completed:</div>
+            <div class="stat-value" id="tasksCompleted">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">completion rate:</div>
+            <div class="stat-value" id="tasksRate">0%</div>
+          </div>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="tasksProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-header">
+          <h4>notes</h4>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-stat">
+            <div class="stat-label">total notes:</div>
+            <div class="stat-value" id="notesTotal">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">with tags:</div>
+            <div class="stat-value" id="notesWithTags">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-header">
+          <h4>finances</h4>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-stat">
+            <div class="stat-label">accounts:</div>
+            <div class="stat-value" id="financesAccounts">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">transactions:</div>
+            <div class="stat-value" id="financesTransactions">0</div>
+          </div>
+          <div class="progress-stat">
+            <div class="stat-label">monthly balance:</div>
+            <div class="stat-value" id="financesBalance">$0.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+</div>

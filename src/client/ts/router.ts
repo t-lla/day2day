@@ -12,6 +12,8 @@ import { setPortalVisible } from "./components/sidebar/sidebar.controller.js"
 import { initFinances } from "./components/finances/finances.controller.js"
 import { initSectionSelector } from "./components/section-selector/section-selector.controller.js"
 import { renderMiniHeader, hideMiniHeader } from "./components/mini-header.js"
+import { initFolders } from "./components/folders/folders.controller.js"
+import { initProfile } from "./components/profile/profile.controller.js"
 
 let portalVisible = true
 let currentSection: string | null = null
@@ -67,7 +69,6 @@ export function navigateToApp(): void {
  * Initializes the router and sets up event listeners.
  */
 export function initRouter(): void {
-  // Initialize event listeners for section navigation
   document.addEventListener("click", (e) => {
     const target = e.target as HTMLElement
     if (target.classList.contains("skip-intro")) {
@@ -91,14 +92,12 @@ export function loadSection(section: string): void {
 
   if (!content) throw new Error("Content container not found")
 
-  // If portal is visible, hide it
   if (portal && !portal.classList.contains("hidden")) {
     portal.classList.add("hidden")
     portalVisible = false
     setPortalVisible(false)
   }
 
-  // If clicking the same section twice, show the section selector
   if (section === currentSection) {
     currentSection = null
     hideMiniHeader()
@@ -106,13 +105,10 @@ export function loadSection(section: string): void {
     return
   }
 
-  // Update current section
   currentSection = section
 
-  // Show mini header with current section
   renderMiniHeader(section)
 
-  // Load the appropriate section
   switch (section) {
     case "notes":
       initNotes()
@@ -125,6 +121,12 @@ export function loadSection(section: string): void {
       break
     case "finances":
       initFinances()
+      break
+    case "folders":
+      initFolders()
+      break
+    case "profile":
+      initProfile()
       break
     default:
       initSectionSelector()

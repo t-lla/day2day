@@ -36,13 +36,13 @@ export interface Category {
  */
 export interface Transaction {
   id: string
-  date: string // ISO string
+  date: string
   description: string
   amount: number
   type: "income" | "expense" | "transfer"
   categoryId: string
   accountId: string
-  toAccountId?: string // For transfers between accounts
+  toAccountId?: string
   isRecurring?: boolean
   recurringFrequency?: "monthly" | "weekly" | "yearly"
 }
@@ -61,7 +61,7 @@ export interface Budget {
  * Represents a monthly summary
  */
 export interface MonthlySummary {
-  month: number // 0-11
+  month: number
   year: number
   startingBalance: number
   endingBalance: number
@@ -188,9 +188,7 @@ export class FinancesModel {
       id: Date.now().toString(),
     }
 
-    // if first account or isDefault is true, make it the default
     if (this.accounts.length === 0 || newAccount.isDefault) {
-      // and remove default from other accounts
       this.accounts.forEach((acc) => {
         acc.isDefault = false
       })
@@ -689,5 +687,4 @@ export class FinancesModel {
   }
 }
 
-// exporting the singleton instance
 export const financesModel = new FinancesModel()

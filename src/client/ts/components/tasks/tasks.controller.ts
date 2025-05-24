@@ -180,6 +180,7 @@ export class TasksController {
       task.completed = !task.completed;
       this.model.saveTasks(this.tasks);
       this.renderTasks();
+      document.dispatchEvent(new CustomEvent("taskStatusChanged", { detail: { taskId: id } }));
     }
   };
 

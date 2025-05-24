@@ -21,20 +21,25 @@ export function renderSectionSelector(): void {
           <h3>> Notes</h3>
           <p>Create and manage your personal notes and thoughts.</p>
         </div>
-        
+
         <div class="section-card" data-section="tasks">
           <h3>> Tasks</h3>
           <p>Track your to-do items and manage your daily tasks.</p>
         </div>
-        
+
         <div class="section-card" data-section="habits">
           <h3>> Habits</h3>
           <p>Build and maintain positive habits with streak tracking.</p>
         </div>
-        
+
         <div class="section-card" data-section="finances">
           <h3>> Finances</h3>
           <p>Monitor your expenses and manage your financial records.</p>
+        </div>
+
+        <div class="section-card" data-section="profile">
+          <h3>> Profile</h3>
+          <p>Manage your user settings and view progress statistics.</p>
         </div>
       </div>
     </div>
