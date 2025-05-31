@@ -4,13 +4,21 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "docs": "typedoc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@microsoft/tsdoc": "^0.15.1",
+    "typedoc": "^0.28.3",
+    "typedoc-plugin-markdown": "^4.6.3",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "calendar-heatmap": "^0.0.4",
+    "flatpickr": "^4.6.13"
   }
 }

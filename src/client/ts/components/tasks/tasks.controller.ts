@@ -10,11 +10,15 @@ import { TasksModel } from "./tasks.model.js";
 import { TasksView } from "./tasks.view.js";
 import { Task } from "../../types.js";
 import { formatDate } from "../../router.js";
+import { apiService } from "../../services/api.service.js";
+import { syncService } from '../../services/sync.service.js';
+import { storageService } from "../../services/storage.service.js";
+import type { ApiResponse } from "../../types.js";
 
 /** Maintains task state, handles user events, and applies filters */
 export class TasksController {
   private model: TasksModel;
-  private tasks: Task[] = [];
+  protected tasks: Task[] = [];
   private currentFilter: "all" | "active" | "completed" = "all";
 
   /**
@@ -40,7 +44,17 @@ export class TasksController {
   async init(selector: string): Promise<void> {
     await TasksView.render(selector);
 
-    this.tasks = this.model.loadTasks();
+    if (apiService.isAuthenticated()) {
+      const res = await apiService.getTasks();
+      if (res.data) {
+        this.tasks = res.data;
+        this.model.saveTasks(res.data);
+      } else {
+        this.tasks = this.model.loadTasks();
+      }
+    } else {
+      this.tasks = this.model.loadTasks();
+    }
 
     const addTaskBtn = document.getElementById("addTaskBtn");
     const cancelTaskBtn = document.getElementById("cancelTaskBtn");
@@ -131,41 +145,61 @@ export class TasksController {
   }
 
   /**
-   * @private
+   * @protected //due to tasks.enhanced.ts import
    * Saves a new or existing task based on form input values.
    * Either updates the tasks array and/or persists changes via the model.
    */
-  private saveTask(): void {
-    
+  protected async saveTask(): Promise<void> {
   const titleInput = document.getElementById("taskTitle") as HTMLInputElement;
-  const descInput = document.getElementById("taskDescription") as HTMLTextAreaElement;
-  const dueInput = document.getElementById("taskDueDate") as HTMLInputElement;
-  const prioInput = document.getElementById("taskPriority") as HTMLSelectElement;
+  const descInput  = document.getElementById("taskDescription") as HTMLTextAreaElement;
+  const dueInput   = document.getElementById("taskDueDate") as HTMLInputElement;
+  const prioInput  = document.getElementById("taskPriority") as HTMLSelectElement;
 
-  if (this.editingTask) { 
-    //edit existing
-    this.editingTask.title = titleInput.value;
-    this.editingTask.description = descInput.value;
-    this.editingTask.dueDate = dueInput.value || null;
-    this.editingTask.priority = prioInput.value as Task["priority"];
-    this.editingTask = null;
-  } else { 
-    //create new
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: titleInput.value,
-      description: descInput.value,
-      dueDate: dueInput.value || null,
-      priority: prioInput.value as Task["priority"],
-      completed: false,
-      createdAt: new Date().toISOString(),
-    };
-    this.tasks.push(newTask);
+  const isEditing = !!this.editingTask;
+  const existing  = this.editingTask!;
+
+  const payload = {
+    userId:   Number(localStorage.getItem("current_user_id")),
+    title:       titleInput.value,
+    description: descInput.value,
+    dueDate:     dueInput.value || null,
+    priority:    prioInput.value as Task["priority"],
+    completed:   isEditing ? existing.completed : false,
+    createdAt:   isEditing ? existing.createdAt : new Date().toISOString(),
+  };
+
+  try {
+    let res: ApiResponse<Task>;
+    if (isEditing) {
+      res = await apiService.request<Task>(
+        `/tasks/${existing.id}`,
+        { method: "PUT", body: JSON.stringify(payload) }
+      );
+    } else {
+      res = await apiService.createTask(payload);
+    }
+
+    if (!res.data) throw new Error(res.error || "Unknown server error");
+
+    if (isEditing) {
+      this.tasks = this.tasks.map(t => t.id === res.data!.id.toString() ? res.data! : t);
+    } else {
+      this.tasks.push(res.data);
+    }
+
+    storageService.set("tasks", this.tasks);
+
+    window.alert("✅ Task saved!");
   }
-
-  this.model.saveTasks(this.tasks);
-  this.renderTasks();
-  this.showTasksList();
+  catch (err) {
+    console.error("Error syncing task:", err);
+    window.alert("❌ Error syncing task");
+  }
+  finally {
+    this.editingTask = null;
+    this.renderTasks();
+    this.showTasksList();
+  }
 }
 
   /**
@@ -174,14 +208,53 @@ export class TasksController {
    *
    * @param id - Identifier of the task to toggle.
    */
-  private toggleTaskCompletion = (id: string): void => {
+  private toggleTaskCompletion = async (id: string): Promise<void> => {
+
     const task = this.tasks.find((t) => t.id === id);
-    if (task) {
-      task.completed = !task.completed;
+    if (!task) return;
+
+    task.completed = !task.completed;
+
+    if (apiService.isAuthenticated()) {
+      try {
+        const payload = {
+          title:       task.title,
+          description: task.description,
+          dueDate:     task.dueDate,
+          priority:    task.priority,
+          completed:   task.completed,
+        };
+        const res: ApiResponse<Task> = await apiService.updateTask(id, payload);
+        if (res.data) {
+
+          this.tasks = this.tasks.map((t) => (t.id === id ? res.data! : t));
+
+          this.model.saveTasks(this.tasks);
+        } else {
+          console.error("Error al actualizar tarea:", res.error);
+          window.alert("No se pudo actualizar el estado de la tarea en el servidor.");
+
+          task.completed = !task.completed;
+        }
+      } catch (err) {
+        console.error("Error de red al actualizar tarea:", err);
+
+        task.completed = !task.completed;
+      }
+    } else {
+
       this.model.saveTasks(this.tasks);
-      this.renderTasks();
-      document.dispatchEvent(new CustomEvent("taskStatusChanged", { detail: { taskId: id } }));
+
+      syncService.queueOperation({
+        type:    "update",
+        entity:  "task",
+        data:    { id, completed: task.completed },
+      });
     }
+
+    document.dispatchEvent(new CustomEvent("taskStatusChanged", { detail: { taskId: id } }));
+
+    this.renderTasks();
   };
 
   /**
@@ -206,12 +279,21 @@ export class TasksController {
    * @example
    * controller.deleteTask("1");
    */
-  private deleteTask = (id: string): void => {
-    if (confirm("Are you sure you want to delete this task?")) {
-      this.tasks = this.tasks.filter((t) => t.id !== id);
-      this.model.saveTasks(this.tasks);
-      this.renderTasks();
+  private deleteTask = async (id: string): Promise<void> => {
+    if (!confirm("¿Estás seguro/a de que quieres eliminar esta tarea?")) return;
+
+    if (apiService.isAuthenticated()) {
+      const res = await apiService.deleteTask(id);
+      if (!res.data) {
+        console.error("Error al borrar tarea en el servidor:", res.error);
+        alert("No se pudo eliminar la tarea en el servidor.");
+        return;
+      }
     }
+
+    this.tasks = this.tasks.filter((t) => t.id !== id);
+    this.model.saveTasks(this.tasks);
+    this.renderTasks();
   };
 
   /**

@@ -3,13 +3,19 @@
  * @module FinancesController
  *
  * Controller for the finances tracker component.
- * Manages the interaction between the finances model and view.
+ * Trabaja completamente en localStorage, sin llamadas al servidor.
  */
 
 import { FinancesView } from "./finances.view.js"
-import { financesModel, type Account, type Transaction, type Category } from "./finances.model.js"
+import {
+  financesModel,
+  type Account,
+  type Transaction,
+  type Category,
+} from "./finances.model.js"
+import { storageService } from "../../services/storage.service.js"
 
-/** FinancesController class for managing finances functionality */
+/** FinancesController class for gestionar toda la funcionalidad de finanzas (localStorage). */
 export class FinancesController {
   private container: HTMLElement
   private currentMonth: number
@@ -20,28 +26,33 @@ export class FinancesController {
   private typeFilter = "all"
 
   /**
-   * Creates a new instance of FinancesController
-   * @param container - The container element
+   * Crea una nueva instancia de FinancesController.
+   * @param container - El elemento HTML donde se renderiza todo.
    */
   constructor(container: HTMLElement) {
     this.container = container
     const now = new Date()
     this.currentMonth = now.getMonth()
     this.currentYear = now.getFullYear()
-  }
-
-  /** Initializes the controller and renders the initial view */
-  init(): void {
-    financesModel.createRecurringTransactionsForCurrentMonth()
 
     this.renderDashboard()
+  }
+
+  /** Inicializa el controlador y prende los event listeners. */
+  init(): void {
+
+    financesModel.createRecurringTransactionsForCurrentMonth()
     this.setupEventListeners()
   }
 
-  /**
-   * Sets up event listeners for the finances component
-   */
+  /** Configura todos los event listeners (“click”, “submit”, etc.) del componente. */
   private setupEventListeners(): void {
+    window.addEventListener("finances:transactionsUpdated", () => {
+      this.renderDashboard();
+    });
+    window.addEventListener("finances:budgetsUpdated", () => {
+      this.renderDashboard();
+    });
     const tabButtons = this.container.querySelectorAll(".tab-btn")
     tabButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -60,6 +71,10 @@ export class FinancesController {
         })
       })
     })
+
+    window.addEventListener("finances:transactionsUpdated", () => {
+      this.renderDashboard();        // => summary, cuentas, tx y budgets
+    });
 
     const accountsOverview = this.container.querySelector("#accountsOverview")
     accountsOverview?.addEventListener("click", (event) => {
@@ -88,16 +103,20 @@ export class FinancesController {
       this.selectAccount(accountId)
     })
 
-    const categoryFilter = this.container.querySelector("#categoryFilter") as HTMLSelectElement
-    const typeFilter = this.container.querySelector("#typeFilter") as HTMLSelectElement
+    const categoryFilterEl = this.container.querySelector(
+      "#categoryFilter"
+    ) as HTMLSelectElement
+    const typeFilterEl = this.container.querySelector(
+      "#typeFilter"
+    ) as HTMLSelectElement
 
-    categoryFilter?.addEventListener("change", () => {
-      this.categoryFilter = categoryFilter.value
+    categoryFilterEl?.addEventListener("change", () => {
+      this.categoryFilter = categoryFilterEl.value
       this.renderTransactions()
     })
 
-    typeFilter?.addEventListener("change", () => {
-      this.typeFilter = typeFilter.value
+    typeFilterEl?.addEventListener("change", () => {
+      this.typeFilter = typeFilterEl.value
       this.renderTransactions()
     })
 
@@ -140,7 +159,9 @@ export class FinancesController {
       }
     })
 
-    const categoriesContainer = this.container.querySelector(".categories-container")
+    const categoriesContainer = this.container.querySelector(
+      ".categories-container"
+    )
     categoriesContainer?.addEventListener("click", (event) => {
       const target = event.target as HTMLElement
       const card = target.closest(".category-card")
@@ -157,40 +178,47 @@ export class FinancesController {
     })
   }
 
-  /** Rendering dashboard view */
+  /** Renderiza TODO el dashboard: summary, cuentas, transacciones, presupuestos, categorías. */
   private renderDashboard(): void {
     const accounts = financesModel.getAccounts()
-    const summary = financesModel.getMonthlySummary(this.currentMonth, this.currentYear)
+    const summary = financesModel.getMonthlySummary(
+      this.currentMonth,
+      this.currentYear
+    )
     const categories = financesModel.getCategories()
 
     FinancesView.renderFinancialSummary(this.container, summary)
 
-    FinancesView.renderAccountsOverview(this.container, accounts, this.selectedAccountId)
+    FinancesView.renderAccountsOverview(
+      this.container,
+      accounts,
+      this.selectedAccountId
+    )
 
     this.populateCategoryFilter(categories)
     this.renderTransactions()
+
     this.renderBudgets()
 
     FinancesView.renderCategories(this.container, categories)
   }
 
   /**
-   * Populates the category filter dropdown
-   * @param categories - Array of categories
+   * Rellena el <select id="categoryFilter"> con las categorías (income/expense).
    */
   private populateCategoryFilter(categories: Category[]): void {
-    const categoryFilter = this.container.querySelector("#categoryFilter") as HTMLSelectElement
-    if (!categoryFilter) return
+    const categoryFilterEl = this.container.querySelector(
+      "#categoryFilter"
+    ) as HTMLSelectElement
+    if (!categoryFilterEl) return
 
-    const currentValue = categoryFilter.value
-
-    while (categoryFilter.options.length > 1) {
-      categoryFilter.remove(1)
+    const currentValue = categoryFilterEl.value
+    while (categoryFilterEl.options.length > 1) {
+      categoryFilterEl.remove(1)
     }
 
     const incomeGroup = document.createElement("optgroup")
     incomeGroup.label = "Income Categories"
-
     categories
       .filter((c) => c.type === "income")
       .forEach((category) => {
@@ -199,15 +227,12 @@ export class FinancesController {
         option.textContent = category.name
         incomeGroup.appendChild(option)
       })
-
     if (incomeGroup.children.length > 0) {
-      categoryFilter.appendChild(incomeGroup)
+      categoryFilterEl.appendChild(incomeGroup)
     }
-
 
     const expenseGroup = document.createElement("optgroup")
     expenseGroup.label = "Expense Categories"
-
     categories
       .filter((c) => c.type === "expense")
       .forEach((category) => {
@@ -216,25 +241,28 @@ export class FinancesController {
         option.textContent = category.name
         expenseGroup.appendChild(option)
       })
-
     if (expenseGroup.children.length > 0) {
-      categoryFilter.appendChild(expenseGroup)
+      categoryFilterEl.appendChild(expenseGroup)
     }
 
-    if (currentValue && Array.from(categoryFilter.options).some((opt) => opt.value === currentValue)) {
-      categoryFilter.value = currentValue
+    if (
+      currentValue &&
+      Array.from(categoryFilterEl.options).some((opt) => opt.value === currentValue)
+    ) {
+      categoryFilterEl.value = currentValue
     } else {
-      categoryFilter.value = "all"
+      categoryFilterEl.value = "all"
       this.categoryFilter = "all"
     }
   }
 
   /**
-   * Renders transactions based on selected account and filters
+   * Renderiza la lista de transacciones según cuenta, categoría y tipo filtrados.
    */
   private renderTransactions(): void {
     const categories = financesModel.getCategories()
     let transactions: Transaction[]
+
     if (this.selectedAccountId && this.selectedAccountId !== "all") {
       transactions = financesModel.getTransactionsByAccount(this.selectedAccountId)
     } else {
@@ -242,9 +270,10 @@ export class FinancesController {
     }
 
     if (this.categoryFilter !== "all") {
-      transactions = transactions.filter((t) => t.categoryId === this.categoryFilter)
+      transactions = transactions.filter(
+        (t) => t.categoryId === this.categoryFilter
+      )
     }
-
     if (this.typeFilter !== "all") {
       transactions = transactions.filter((t) => t.type === this.typeFilter)
     }
@@ -253,17 +282,25 @@ export class FinancesController {
   }
 
   /**
-   * Renders budgets based on selected account
+   * Renderiza el bloque de presupuestos (Budgets) según cuenta seleccionada.
    */
   private renderBudgets(): void {
     const categories = financesModel.getCategories()
-    const summary = financesModel.getMonthlySummary(this.currentMonth, this.currentYear)
+    const summary = financesModel.getMonthlySummary(
+      this.currentMonth,
+      this.currentYear
+    )
 
     if (this.selectedAccountId && this.selectedAccountId !== "all") {
-      const accountTransactions = financesModel.getTransactionsByAccount(this.selectedAccountId)
+      const accountTransactions = financesModel.getTransactionsByAccount(
+        this.selectedAccountId
+      )
       const accountTransactionsForMonth = accountTransactions.filter((t) => {
         const date = new Date(t.date)
-        return date.getMonth() === this.currentMonth && date.getFullYear() === this.currentYear
+        return (
+          date.getMonth() === this.currentMonth &&
+          date.getFullYear() === this.currentYear
+        )
       })
 
       let totalIncome = 0
@@ -273,10 +310,12 @@ export class FinancesController {
       accountTransactionsForMonth.forEach((transaction) => {
         if (transaction.type === "income") {
           totalIncome += transaction.amount
-          categoryTotals[transaction.categoryId] = (categoryTotals[transaction.categoryId] || 0) + transaction.amount
+          categoryTotals[transaction.categoryId] =
+            (categoryTotals[transaction.categoryId] || 0) + transaction.amount
         } else if (transaction.type === "expense") {
           totalExpenses += transaction.amount
-          categoryTotals[transaction.categoryId] = (categoryTotals[transaction.categoryId] || 0) + transaction.amount
+          categoryTotals[transaction.categoryId] =
+            (categoryTotals[transaction.categoryId] || 0) + transaction.amount
         }
       })
 
@@ -288,21 +327,30 @@ export class FinancesController {
         categoryTotals,
       }
 
-      FinancesView.renderBudgets(this.container, categories, accountSummary)
+      FinancesView.renderBudgets(
+        this.container,
+        categories,
+        accountSummary
+      )
     } else {
-
-      FinancesView.renderBudgets(this.container, categories, summary)
+      FinancesView.renderBudgets(
+        this.container,
+        categories,
+        summary
+      )
     }
   }
 
   /**
-   * Selects an account and updates the view
-   * @param accountId - The account ID to select, or null for all accounts
+   * Selecciona una cuenta “accountId” y cambia a pestaña “transactions”.
+   * También resalta la tarjeta de cuenta seleccionada.
    */
   private selectAccount(accountId: string | null): void {
     this.selectedAccountId = accountId
 
-    const accountHeader = this.container.querySelector("#selectedAccountHeader h3") as HTMLElement
+    const accountHeader = this.container.querySelector(
+      "#selectedAccountHeader h3"
+    ) as HTMLElement
     if (accountHeader) {
       if (accountId) {
         const account = financesModel.getAccountById(accountId)
@@ -344,43 +392,57 @@ export class FinancesController {
     this.renderBudgets()
   }
 
-  /**
-   * Shows the transaction form
-   */
+  /** Abre el modal de “Add/Edit Transaction” y lo prepara con datos (o vacío). */
   private showTransactionForm(): void {
     const accounts = financesModel.getAccounts()
     const categories = financesModel.getCategories()
     let transaction: Transaction | undefined
 
     if (this.selectedItemId) {
-      transaction = financesModel.getTransactionById(this.selectedItemId)
+      transaction =
+        financesModel.getTransactionById(this.selectedItemId)
     }
 
     let preSelectedAccountId = this.selectedAccountId
     if (!preSelectedAccountId && !transaction) {
-
       const defaultAccount = financesModel.getDefaultAccount()
       preSelectedAccountId = defaultAccount.id
     }
 
-    FinancesView.prepareTransactionForm(this.container, accounts, categories, transaction, preSelectedAccountId)
+    FinancesView.prepareTransactionForm(
+      this.container,
+      accounts,
+      categories,
+      transaction,
+      preSelectedAccountId
+    )
   }
 
   /**
-   * Sets up event listeners for the transaction form
+   * Configura todos los eventos (submit, change, cerrar, cancelar…) del formulario de transacción.
+   * Trabaja solo en fincasModel/localStorage, sin backend.
    */
   private setupTransactionFormEventListeners(): void {
-    const transactionForm = this.container.querySelector("#transactionForm") as HTMLFormElement
+    const transactionForm = this.container.querySelector(
+      "#transactionForm"
+    ) as HTMLFormElement
     if (!transactionForm) return
 
-    const typeSelect = transactionForm.querySelector("#transactionType") as HTMLSelectElement
-    const toAccountGroup = transactionForm.querySelector("#toAccountGroup") as HTMLElement
-    const categoryGroup = transactionForm.querySelector("#categoryGroup") as HTMLElement
-    const categorySelect = transactionForm.querySelector("#transactionCategory") as HTMLSelectElement
+    const typeSelect = transactionForm.querySelector(
+      "#transactionType"
+    ) as HTMLSelectElement
+    const toAccountGroup = transactionForm.querySelector(
+      "#toAccountGroup"
+    ) as HTMLElement
+    const categoryGroup = transactionForm.querySelector(
+      "#categoryGroup"
+    ) as HTMLElement
+    const categorySelect = transactionForm.querySelector(
+      "#transactionCategory"
+    ) as HTMLSelectElement
 
     typeSelect?.addEventListener("change", () => {
       const type = typeSelect.value as "income" | "expense" | "transfer"
-
       if (type === "transfer") {
         toAccountGroup.style.display = "flex"
         categoryGroup.style.display = "none"
@@ -388,23 +450,27 @@ export class FinancesController {
         toAccountGroup.style.display = "none"
         categoryGroup.style.display = "flex"
 
-        const incomeGroup = categorySelect.querySelector("#incomeCategoriesGroup") as HTMLOptGroupElement
-        const expenseGroup = categorySelect.querySelector("#expenseCategoriesGroup") as HTMLOptGroupElement
+        const incomeGroup = categorySelect.querySelector(
+          "#incomeCategoriesGroup"
+        ) as HTMLOptGroupElement
+        const expenseGroup = categorySelect.querySelector(
+          "#expenseCategoriesGroup"
+        ) as HTMLOptGroupElement
 
         if (incomeGroup && expenseGroup) {
           if (type === "income") {
             incomeGroup.style.display = ""
             expenseGroup.style.display = "none"
-
-            const firstIncomeOption = incomeGroup.querySelector("option")
+            const firstIncomeOption =
+              incomeGroup.querySelector("option")
             if (firstIncomeOption) {
               categorySelect.value = firstIncomeOption.value
             }
           } else {
             incomeGroup.style.display = "none"
             expenseGroup.style.display = ""
-
-            const firstExpenseOption = expenseGroup.querySelector("option")
+            const firstExpenseOption =
+              expenseGroup.querySelector("option")
             if (firstExpenseOption) {
               categorySelect.value = firstExpenseOption.value
             }
@@ -413,77 +479,167 @@ export class FinancesController {
       }
     })
 
-    const recurringCheckbox = transactionForm.querySelector("#transactionRecurring") as HTMLInputElement
-    const recurringFrequencyGroup = transactionForm.querySelector("#recurringFrequencyGroup") as HTMLElement
-
+    const recurringCheckbox = transactionForm.querySelector(
+      "#transactionRecurring"
+    ) as HTMLInputElement
+    const recurringFrequencyGroup = transactionForm.querySelector(
+      "#recurringFrequencyGroup"
+    ) as HTMLElement
     recurringCheckbox?.addEventListener("change", () => {
-      recurringFrequencyGroup.style.display = recurringCheckbox.checked ? "flex" : "none"
+      recurringFrequencyGroup.style.display = recurringCheckbox.checked
+        ? "flex"
+        : "none"
     })
 
-    const closeBtn = transactionForm.querySelector(".close-btn") as HTMLButtonElement
+    const closeBtn = transactionForm.querySelector(
+      ".close-btn"
+    ) as HTMLButtonElement
     closeBtn?.addEventListener("click", () => {
       this.selectedItemId = null
-      FinancesView.hideForm(this.container, "transactionFormContainer")
+      FinancesView.hideForm(
+        this.container,
+        "transactionFormContainer"
+      )
     })
 
-    const cancelBtn = transactionForm.querySelector("#cancelTransactionBtn") as HTMLButtonElement
+    const cancelBtn = transactionForm.querySelector(
+      "#cancelTransactionBtn"
+    ) as HTMLButtonElement
     cancelBtn?.addEventListener("click", () => {
       this.selectedItemId = null
-      FinancesView.hideForm(this.container, "transactionFormContainer")
+      FinancesView.hideForm(
+        this.container,
+        "transactionFormContainer"
+      )
     })
 
-    transactionForm.addEventListener("submit", (event) => {
+    transactionForm.addEventListener("submit", async (event) => {
       event.preventDefault()
 
-      const type = typeSelect.value as "income" | "expense" | "transfer"
-      const date = (transactionForm.querySelector("#transactionDate") as HTMLInputElement).value
-      const amount = Number.parseFloat((transactionForm.querySelector("#transactionAmount") as HTMLInputElement).value)
-      const description = (transactionForm.querySelector("#transactionDescription") as HTMLInputElement).value
-      const accountId = (transactionForm.querySelector("#transactionAccount") as HTMLSelectElement).value
+      const type = typeSelect.value as
+        | "income"
+        | "expense"
+        | "transfer"
+      const date = (transactionForm.querySelector(
+        "#transactionDate"
+      ) as HTMLInputElement).value
+      const amount = Number.parseFloat(
+        (transactionForm.querySelector(
+          "#transactionAmount"
+        ) as HTMLInputElement).value
+      )
+      const description = (
+        transactionForm.querySelector(
+          "#transactionDescription"
+        ) as HTMLInputElement
+      ).value.trim()
+      const accountId = (transactionForm.querySelector(
+        "#transactionAccount"
+      ) as HTMLSelectElement).value
+
       const toAccountId =
         type === "transfer"
-          ? (transactionForm.querySelector("#transactionToAccount") as HTMLSelectElement).value
-          : undefined
-      const categoryId = type !== "transfer" ? categorySelect.value : ""
+          ? ((transactionForm.querySelector(
+              "#transactionToAccount"
+            ) as HTMLSelectElement).value || null)
+          : null
+
+      let rawCategory = (
+        transactionForm.querySelector(
+          "#transactionCategory"
+        ) as HTMLSelectElement
+      ).value
+
+      if (type !== "transfer" && (!rawCategory || rawCategory === "")) {
+        const allCats = financesModel.getCategories()
+        const matching = allCats.find((c) => c.type === type)
+        rawCategory = matching ? matching.id : ""
+      }
+      const categoryId =
+        type !== "transfer" && rawCategory !== "" ? rawCategory : null
+
       const isRecurring = recurringCheckbox.checked
       const recurringFrequency = isRecurring
-        ? ((transactionForm.querySelector("#recurringFrequency") as HTMLSelectElement).value as
+        ? ((transactionForm.querySelector(
+            "#recurringFrequency"
+          ) as HTMLSelectElement).value as
             | "monthly"
             | "weekly"
             | "yearly")
-        : undefined
+        : null
+
+      const missing: string[] = []
+      if (!date) missing.push("Date")
+      if (!description) missing.push("Description")
+      if (!accountId) missing.push("Account")
+      if (isNaN(amount)) missing.push("Amount")
+      if (!type) missing.push("Type")
+
+      if (missing.length > 0) {
+        FinancesView.showNotification(
+          this.container,
+          `Please fill: ${missing.join(", ")}`,
+          "error"
+        )
+        return
+      }
 
       const transactionData: Omit<Transaction, "id"> = {
-        type,
         date: new Date(date).toISOString(),
-        amount,
         description,
+        amount,
+        type,
+        categoryId: categoryId as string, // puede ser null si es transfer
         accountId,
-        toAccountId,
-        categoryId,
+        toAccountId: toAccountId as string | undefined,
         isRecurring,
-        recurringFrequency,
+        recurringFrequency: recurringFrequency as
+          | "monthly"
+          | "weekly"
+          | "yearly"
+          | undefined,
       }
 
       if (this.selectedItemId) {
 
-        financesModel.updateTransaction(this.selectedItemId, transactionData)
-        FinancesView.showNotification(this.container, "Transaction updated successfully")
+        financesModel.updateTransaction(
+          this.selectedItemId,
+          transactionData
+        )
+        FinancesView.showNotification(
+          this.container,
+          "Transaction updated successfully"
+        )
       } else {
 
-        financesModel.addTransaction(transactionData)
-        FinancesView.showNotification(this.container, "Transaction added successfully")
+        await financesModel.addTransaction(transactionData)
+        FinancesView.showNotification(
+          this.container,
+          "Transaction added successfully"
+        )
+        window.addEventListener("finances:transactionsUpdated", () => {
+          this.renderTransactions()
+          this.renderBudgets()
+        })
       }
 
+      storageService.set(
+        "finances_transactions",
+        financesModel.getAllTransactions()
+      )
+
       this.selectedItemId = null
-      FinancesView.hideForm(this.container, "transactionFormContainer")
+      FinancesView.hideForm(
+        this.container,
+        "transactionFormContainer"
+      )
       this.renderDashboard()
     })
   }
 
   /**
-   * Edits a transaction
-   * @param id - The transaction ID
+   * Edita una transacción (al hacer clic en “edit” de la tabla de transacciones).
+   * Pone selectedItemId, abre el modal y carga datos.
    */
   private editTransaction(id: string): void {
     this.selectedItemId = id
@@ -491,8 +647,7 @@ export class FinancesController {
   }
 
   /**
-   * Deletes a transaction
-   * @param id - The transaction ID
+   * Elimina una transacción (al confirmar el diálogo).
    */
   private deleteTransaction(id: string): void {
     FinancesView.renderConfirmDialog(
@@ -500,59 +655,83 @@ export class FinancesController {
       "Are you sure you want to delete this transaction?",
       () => {
         financesModel.deleteTransaction(id)
-        FinancesView.showNotification(this.container, "Transaction deleted successfully")
+        FinancesView.showNotification(
+          this.container,
+          "Transaction deleted successfully"
+        )
+
+        storageService.set(
+          "finances_transactions",
+          financesModel.getAllTransactions()
+        )
         this.renderDashboard()
       },
-      () => {},  //do nothing on cancel
+      () => {
+
+      }
     )
   }
 
-  /**
-   * Shows the account form
-   */
+  /** Abre el modal para añadir/editar cuenta. */
   private showAccountForm(): void {
     let account: Account | undefined
-
     if (this.selectedItemId) {
       account = financesModel.getAccountById(this.selectedItemId)
     }
-
     FinancesView.prepareAccountForm(this.container, account)
   }
 
-  /**
-   * Sets up event listeners for the account form
-   */
+  /** Captura el “submit” de formulario de cuenta y guarda/edita en financesModel. */
   private setupAccountFormEventListeners(): void {
-    const accountForm = this.container.querySelector("#accountForm") as HTMLFormElement
+    const accountForm = this.container.querySelector(
+      "#accountForm"
+    ) as HTMLFormElement
     if (!accountForm) return
 
-    const closeBtn = accountForm.querySelector(".close-btn") as HTMLButtonElement
+    const closeBtn = accountForm.querySelector(
+      ".close-btn"
+    ) as HTMLButtonElement
     closeBtn?.addEventListener("click", () => {
       this.selectedItemId = null
       FinancesView.hideForm(this.container, "accountFormContainer")
     })
 
-    const cancelBtn = accountForm.querySelector("#cancelAccountBtn") as HTMLButtonElement
+    const cancelBtn = accountForm.querySelector(
+      "#cancelAccountBtn"
+    ) as HTMLButtonElement
     cancelBtn?.addEventListener("click", () => {
       this.selectedItemId = null
       FinancesView.hideForm(this.container, "accountFormContainer")
     })
 
-    accountForm.addEventListener("submit", (event) => {
+    accountForm.addEventListener("submit", async (event) => {
       event.preventDefault()
 
-      const name = (accountForm.querySelector("#accountName") as HTMLInputElement).value
-      const type = (accountForm.querySelector("#accountType") as HTMLSelectElement).value as
+      const name = (accountForm.querySelector(
+        "#accountName"
+      ) as HTMLInputElement).value
+      const type = (accountForm.querySelector(
+        "#accountType"
+      ) as HTMLSelectElement).value as
         | "credit"
         | "debit"
         | "savings"
         | "cash"
         | "investment"
-      const balance = Number.parseFloat((accountForm.querySelector("#accountBalance") as HTMLInputElement).value)
-      const currency = (accountForm.querySelector("#accountCurrency") as HTMLSelectElement).value
-      const color = (accountForm.querySelector("#accountColor") as HTMLInputElement).value
-      const isDefault = (accountForm.querySelector("#accountDefault") as HTMLInputElement).checked
+      const balance = Number.parseFloat(
+        (accountForm.querySelector(
+          "#accountBalance"
+        ) as HTMLInputElement).value
+      )
+      const currency = (accountForm.querySelector(
+        "#accountCurrency"
+      ) as HTMLSelectElement).value
+      const color = (accountForm.querySelector(
+        "#accountColor"
+      ) as HTMLInputElement).value
+      const isDefault = (accountForm.querySelector(
+        "#accountDefault"
+      ) as HTMLInputElement).checked
 
       const accountData: Omit<Account, "id"> = {
         name,
@@ -564,77 +743,101 @@ export class FinancesController {
       }
 
       if (this.selectedItemId) {
-
         financesModel.updateAccount(this.selectedItemId, accountData)
-        FinancesView.showNotification(this.container, "Account updated successfully")
+        FinancesView.showNotification(
+          this.container,
+          "Account updated successfully"
+        )
       } else {
-
         const newAccount = financesModel.addAccount(accountData)
-        FinancesView.showNotification(this.container, "Account added successfully")
-
-        this.selectAccount(newAccount.id)
+        FinancesView.showNotification(
+          this.container,
+          "Account added successfully"
+        )
+        this.selectAccount((await newAccount).id)
       }
 
       this.selectedItemId = null
       FinancesView.hideForm(this.container, "accountFormContainer")
+
+      storageService.set(
+        "finances_accounts",
+        financesModel.getAccounts()
+      )
       this.renderDashboard()
     })
   }
 
-  /**
-   * Edits an account
-   * @param id - The account ID
-   */
+  /** Abre modal para editar cuenta (al hacer clic en “edit” de la tarjeta). */
   private editAccount(id: string): void {
     this.selectedItemId = id
     this.showAccountForm()
   }
 
-  /**
-   * Deletes an account
-   * @param id - The account ID
-   */
+  /** Elimina una cuenta (al confirmar diálogo). */
   private deleteAccount(id: string): void {
     FinancesView.renderConfirmDialog(
       this.container,
       "Are you sure you want to delete this account? All associated transactions will also be deleted.",
       () => {
-
         if (this.selectedAccountId === id) {
           this.selectedAccountId = null
         }
-
         financesModel.deleteAccount(id)
-        FinancesView.showNotification(this.container, "Account deleted successfully")
+        FinancesView.showNotification(
+          this.container,
+          "Account deleted successfully"
+        )
+
+        storageService.set(
+          "finances_accounts",
+          financesModel.getAccounts()
+        )
+        storageService.set(
+          "finances_transactions",
+          financesModel.getAllTransactions()
+        )
         this.renderDashboard()
       },
-      () => {},
+      () => {
+
+      }
     )
   }
 
-  /**
-   * Shows the budget form
-   */
+  /** Abre modal para editar presupuestos. */
   private showBudgetForm(): void {
     const categories = financesModel.getCategoriesByType("expense")
-    const budgets = financesModel.getBudgetsByMonth(this.currentMonth, this.currentYear)
-
-    FinancesView.prepareBudgetForm(this.container, categories, budgets, this.currentMonth, this.currentYear)
+    const budgets = financesModel.getBudgetsByMonth(
+      this.currentMonth,
+      this.currentYear
+    )
+    FinancesView.prepareBudgetForm(
+      this.container,
+      categories,
+      budgets,
+      this.currentMonth,
+      this.currentYear
+    )
   }
 
-  /**
-   * Sets up event listeners for the budget form
-   */
+  /** Captura “submit” de presupuesto y lo guarda. */
   private setupBudgetFormEventListeners(): void {
-    const budgetForm = this.container.querySelector("#budgetForm") as HTMLFormElement
+    const budgetForm = this.container.querySelector(
+      "#budgetForm"
+    ) as HTMLFormElement
     if (!budgetForm) return
 
-    const closeBtn = budgetForm.querySelector(".close-btn") as HTMLButtonElement
+    const closeBtn = budgetForm.querySelector(
+      ".close-btn"
+    ) as HTMLButtonElement
     closeBtn?.addEventListener("click", () => {
       FinancesView.hideForm(this.container, "budgetFormContainer")
     })
 
-    const cancelBtn = budgetForm.querySelector("#cancelBudgetBtn") as HTMLButtonElement
+    const cancelBtn = budgetForm.querySelector(
+      "#cancelBudgetBtn"
+    ) as HTMLButtonElement
     cancelBtn?.addEventListener("click", () => {
       FinancesView.hideForm(this.container, "budgetFormContainer")
     })
@@ -642,71 +845,106 @@ export class FinancesController {
     budgetForm.addEventListener("submit", (event) => {
       event.preventDefault()
 
-      const inputs = budgetForm.querySelectorAll("input[data-category-id]") as NodeListOf<HTMLInputElement>
+      const inputs = budgetForm.querySelectorAll(
+        "input[data-category-id]"
+      ) as NodeListOf<HTMLInputElement>
 
       inputs.forEach((input) => {
-        const categoryId = input.getAttribute("data-category-id") as string
+        const categoryId = input.getAttribute(
+          "data-category-id"
+        ) as string
         const amount = Number.parseFloat(input.value)
 
         if (categoryId && !isNaN(amount)) {
-          financesModel.setBudget(categoryId, this.currentMonth, this.currentYear, amount)
-
+          financesModel.setBudget(
+            categoryId,
+            this.currentMonth,
+            this.currentYear,
+            amount
+          )
           const category = financesModel.getCategoryById(categoryId)
           if (category) {
-            financesModel.updateCategory(categoryId, { monthlyBudget: amount })
+            financesModel.updateCategory(categoryId, {
+              monthlyBudget: amount,
+            })
+
+            storageService.set(
+              "finances_categories",
+              financesModel.getCategories()
+            )
           }
         }
       })
 
-      FinancesView.showNotification(this.container, "Budgets updated successfully")
-      FinancesView.hideForm(this.container, "budgetFormContainer")
+      FinancesView.showNotification(
+        this.container,
+        "Budgets updated successfully"
+      )
+      FinancesView.hideForm(
+        this.container,
+        "budgetFormContainer"
+      )
       this.renderDashboard()
     })
   }
 
-  /**
-   * Shows the category form
-   */
+  /** Abre modal para añadir/editar categoría. */
   private showCategoryForm(): void {
     let category: Category | undefined
-
     if (this.selectedItemId) {
       category = financesModel.getCategoryById(this.selectedItemId)
     }
-
     FinancesView.prepareCategoryForm(this.container, category)
   }
 
-  /**
-   * Sets up event listeners for the category form
-   */
+  /** Captura “submit” de categoría y la guarda/edita. */
   private setupCategoryFormEventListeners(): void {
-    const categoryForm = this.container.querySelector("#categoryForm") as HTMLFormElement
+    const categoryForm = this.container.querySelector(
+      "#categoryForm"
+    ) as HTMLFormElement
     if (!categoryForm) return
 
-    const closeBtn = categoryForm.querySelector(".close-btn") as HTMLButtonElement
+    const closeBtn = categoryForm.querySelector(
+      ".close-btn"
+    ) as HTMLButtonElement
     closeBtn?.addEventListener("click", () => {
       this.selectedItemId = null
       FinancesView.hideForm(this.container, "categoryFormContainer")
     })
 
-    const cancelBtn = categoryForm.querySelector("#cancelCategoryBtn") as HTMLButtonElement
+    const cancelBtn = categoryForm.querySelector(
+      "#cancelCategoryBtn"
+    ) as HTMLButtonElement
     cancelBtn?.addEventListener("click", () => {
       this.selectedItemId = null
       FinancesView.hideForm(this.container, "categoryFormContainer")
     })
 
-    categoryForm.addEventListener("submit", (event) => {
+    categoryForm.addEventListener("submit", async (event) => {
       event.preventDefault()
 
-      const name = (categoryForm.querySelector("#categoryName") as HTMLInputElement).value
-      const type = (categoryForm.querySelector("#categoryType") as HTMLSelectElement).value as "income" | "expense"
-      const color = (categoryForm.querySelector("#categoryColor") as HTMLInputElement).value
+      const name = (categoryForm.querySelector(
+        "#categoryName"
+      ) as HTMLInputElement).value
+      const type = (categoryForm.querySelector(
+        "#categoryType"
+      ) as HTMLSelectElement).value as "income" | "expense"
+      const color = (categoryForm.querySelector(
+        "#categoryColor"
+      ) as HTMLInputElement).value
       const isFixed =
-        type === "expense" ? (categoryForm.querySelector("#categoryFixed") as HTMLInputElement).checked : false
+        type === "expense"
+          ? (categoryForm.querySelector(
+              "#categoryFixed"
+            ) as HTMLInputElement).checked
+          : false
       const monthlyBudget =
         type === "expense"
-          ? Number.parseFloat((categoryForm.querySelector("#categoryBudget") as HTMLInputElement).value)
+          ? Number.parseFloat(
+              (categoryForm.querySelector(
+                "#categoryBudget"
+              ) as HTMLInputElement).value
+            )
           : undefined
 
       const categoryData: Omit<Category, "id"> = {
@@ -718,50 +956,78 @@ export class FinancesController {
       }
 
       if (this.selectedItemId) {
-
-        financesModel.updateCategory(this.selectedItemId, categoryData)
-        FinancesView.showNotification(this.container, "Category updated successfully")
+        financesModel.updateCategory(
+          this.selectedItemId,
+          categoryData
+        )
+        FinancesView.showNotification(
+          this.container,
+          "Category updated successfully"
+        )
       } else {
-
-        financesModel.addCategory(categoryData)
-        FinancesView.showNotification(this.container, "Category added successfully")
+        await financesModel.addCategory(categoryData)
+        FinancesView.showNotification(
+          this.container,
+          "Category added successfully"
+        )
       }
 
       this.selectedItemId = null
-      FinancesView.hideForm(this.container, "categoryFormContainer")
+      FinancesView.hideForm(
+        this.container,
+        "categoryFormContainer"
+      )
+      storageService.set(
+        "finances_categories",
+        financesModel.getCategories()
+      )
       this.renderDashboard()
+    })
+      window.addEventListener("finances:categoriesUpdated", () => {
+      this.populateCategoryFilter(financesModel.getCategories())
+      FinancesView.renderCategories(
+        this.container,
+        financesModel.getCategories(),
+      )
     })
   }
 
-  /**
-   * Edits a category
-   * @param id - The category ID
-   */
+  /** Edita una categoría (al clicar “edit” en la lista). */
   private editCategory(id: string): void {
     this.selectedItemId = id
     this.showCategoryForm()
   }
 
-  /**
-   * Deletes a category
-   * @param id - The category ID
-   */
+  /** Elimina una categoría (al confirmar el diálogo). */
   private deleteCategory(id: string): void {
     FinancesView.renderConfirmDialog(
       this.container,
       "Are you sure you want to delete this category? Transactions using this category will be reassigned to 'Other'.",
       () => {
         financesModel.deleteCategory(id)
-        FinancesView.showNotification(this.container, "Category deleted successfully")
+        FinancesView.showNotification(
+          this.container,
+          "Category deleted successfully"
+        )
+        storageService.set(
+          "finances_categories",
+          financesModel.getCategories()
+        )
+        storageService.set(
+          "finances_transactions",
+          financesModel.getAllTransactions()
+        )
         this.renderDashboard()
       },
-      () => {},
+      () => {
+
+      }
     )
   }
 }
 
 /**
- * Initializes the finances controller
+ * Inicializa el controlador de finanzas: carga "components/finances.html", inyecta HTML y arranca el controller.
  */
 export function initFinances(): void {
   const container = document.getElementById("content")

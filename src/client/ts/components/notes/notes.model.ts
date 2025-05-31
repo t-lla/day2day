@@ -5,6 +5,7 @@
  * Model responsible for loading and saving notes data in localStorage.
  * Initializes default notes if none exist, used by the NotesController for data management.
  */
+import { storageService } from "../../services/storage.service.js";
 import { Note } from "../../types.js";
 
 /**
@@ -22,24 +23,22 @@ export class NotesModel {
    * const notes = model.loadNotes();
    */
   loadNotes(): Note[] {
-    const savedNotes = localStorage.getItem("notes");
-    if (savedNotes) {
-      return JSON.parse(savedNotes) as Note[];
-    } else {
-      const initialNotes: Note[] = [
-        {
-          id: "1",
-          title: "welcome note",
-          content: "sigh jefe\n\nmaybe support markdown format?",
-          tags: ["wip", "brrr"],
-          createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-          updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-        },
-      ];
-      this.saveNotes(initialNotes);
-      return initialNotes;
-    }
-  }
+    const notes = storageService.get<Note[]>("notes", null);
+    if (notes) return notes;
+    
+    const initialNotes: Note[] = [
+      {
+        id: "1",
+        title: "Welcome note!",
+        content: "This is a placeholder note.\n\nWrite whatever you want!",
+        tags: ["wip", "test"],
+        createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+        updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+      },
+    ];
+    this.saveNotes(initialNotes);
+  return initialNotes;
+}
 
   /**
    * Saves the provided array of notes to localStorage under the key 'notes'.
@@ -51,6 +50,6 @@ export class NotesModel {
    * model.saveNotes([{ id: "1", title: "new note", ... }]);
    */
   saveNotes(notes: Note[]): void {
-    localStorage.setItem("notes", JSON.stringify(notes));
+    storageService.set("notes", notes);
   }
 }

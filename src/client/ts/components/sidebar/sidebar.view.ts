@@ -5,7 +5,7 @@
  * Provides methods for rendering and updating the sidebar UI component.
  * Provides static methods to load the sidebar HTML template and highlight selected items.
  */
-import { loadComponent } from "../loader.js";
+import { loadComponent } from "../loader.js"
 
 /**
  * Manages the UI rendering and selection state of the sidebar.
@@ -23,7 +23,7 @@ export class SidebarView {
    * await SidebarView.render('#sidebar');
    */
   static async render(selector: string): Promise<void> {
-    return loadComponent(selector, "../../components/sidebar.html");
+    return loadComponent(selector, "../../components/sidebar.html")
   }
 
   /**
@@ -38,7 +38,7 @@ export class SidebarView {
    */
   static highlightSelection(index: number, treeItems: HTMLLIElement[]): void {
     treeItems.forEach((item, i) => {
-      item.classList.toggle("selected", i === index);
-    });
+      item.classList.toggle("selected", i === index)
+    })
   }
 }

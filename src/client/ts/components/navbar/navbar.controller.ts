@@ -9,6 +9,7 @@ import { NavbarView } from "./navbar.view.js";
 import { NavbarModel } from "./navbar.model.js";
 import { showMainMenu } from "../../router.js";
 import { showEntryModal } from "../entry/entry.controller.js";
+import { storageService } from "../../services/storage.service.js";
 
 /**
  * NavbarController initializes and updates the navigation bar UI,
@@ -43,7 +44,11 @@ export class NavbarController {
     if (entry) {
       entry.addEventListener("click", () => {
         if (this.model.isLoggedIn()) {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("current_user_id");
+          localStorage.removeItem("offline_mode");
           this.model.removeUser();
+          storageService.clearNamespace();
           window.location.reload();
         } else {
           showEntryModal();

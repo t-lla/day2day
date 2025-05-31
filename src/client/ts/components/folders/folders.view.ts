@@ -81,7 +81,6 @@ export class FoldersView {
   static renderFolderContents(container: HTMLElement, folder: Folder, items: FolderItem[], filter?: string): void {
     const formattedDate = formatDate(new Date(folder.createdAt))
 
-    // Count items by type for filter badges
     const typeCounts = {
       note: items.filter((item) => item.type === "note").length,
       task: items.filter((item) => item.type === "task").length,
@@ -124,7 +123,6 @@ export class FoldersView {
           <div class="folder-items-grid">
     `
 
-    // Filter items if a filter is applied
     const filteredItems = filter ? items.filter((item) => item.type === filter) : items
 
     if (filteredItems.length === 0) {

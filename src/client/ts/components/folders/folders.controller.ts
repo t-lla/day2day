@@ -7,12 +7,15 @@
  */
 
 import { FoldersView } from "./folders.view.js"
-import { foldersModel, type FolderItemType, type FolderItem } from "./folders.model.js"
+import { foldersModel, type FolderItemType, type FolderItem, Folder } from "./folders.model.js"
 import { loadSection } from "../../router.js"
 import { loadComponent } from "../loader.js"
 
 import { getAllHabits, findHabitById } from "../habits/habits.model.js"
 import { financesModel } from "../finances/finances.model.js"
+import { apiService } from "../../services/api.service.js"
+import { storageService } from "../../services/storage.service.js";
+import type { Task, Note, ApiResponse } from "../../types.js";
 
 /**
  * FoldersController class for managing folders functionality
@@ -122,7 +125,7 @@ export class FoldersController {
       }
     })
 
-    this.container.addEventListener("submit", (event) => {
+    this.container.addEventListener("submit", async (event) => {
       event.preventDefault()
       const target = event.target as HTMLFormElement
 
@@ -130,20 +133,26 @@ export class FoldersController {
         const nameInput = document.getElementById("folderName") as HTMLInputElement
         const descriptionInput = document.getElementById("folderDescription") as HTMLInputElement
 
-        if (nameInput && descriptionInput && nameInput.value.trim() && descriptionInput.value.trim()) {
-          this.addFolder(nameInput.value.trim(), descriptionInput.value.trim())
+        if (nameInput.value.trim() && descriptionInput.value.trim()) {
+          await this.addFolder(nameInput.value.trim(), descriptionInput.value.trim())
         }
       }
 
       else if (target.id === "editFolderForm") {
-        const folderId = target.dataset.id
-        const nameInput = document.getElementById("folderName") as HTMLInputElement
-        const descriptionInput = document.getElementById("folderDescription") as HTMLInputElement
+  const folderId  = target.dataset.id
+  const nameInput = document.getElementById("folderName")        as HTMLInputElement
+  const descInput = document.getElementById("folderDescription") as HTMLInputElement
 
-        if (folderId && nameInput && descriptionInput && nameInput.value.trim() && descriptionInput.value.trim()) {
-          this.updateFolder(folderId, nameInput.value.trim(), descriptionInput.value.trim())
-        }
-      }
+  if (folderId && nameInput.value.trim() && descInput.value.trim()) {
+    await this.updateFolder(
+      folderId,
+      nameInput.value.trim(),
+      descInput.value.trim(),
+    )
+  } else {
+    console.warn("editFolderForm → faltan datos para guardar")
+  }
+}
 
       else if (target.id === "addItemForm") {
         const folderId = target.dataset.folderId
@@ -190,6 +199,14 @@ export class FoldersController {
    * Renders the folders dashboard
    */
   private async renderFoldersDashboard(): Promise<void> {
+
+    if (apiService.isAuthenticated()) {
+      const res = await apiService.getFolders();
+      if (res.data) {
+        foldersModel.setFolders(res.data);
+      }
+    }
+
     const folders = foldersModel.getFolders()
     const itemCounts = new Map<string, number>()
 
@@ -227,13 +244,10 @@ export class FoldersController {
       switch (item.type) {
         case "task": {
           if (!enrichedItem.metadata || enrichedItem.metadata.completed === undefined) {
-            const savedTasks = localStorage.getItem("tasks")
-            if (savedTasks) {
-              const tasks = JSON.parse(savedTasks)
-              const task = tasks.find((t: any) => t.id === item.originalId)
-              if (task) {
-                enrichedItem.metadata = { ...enrichedItem.metadata, completed: task.completed }
-              }
+            const tasks = storageService.get<Task[]>("tasks", []);
+            const task  = tasks.find((t) => t.id === item.originalId);
+            if (task) {
+              enrichedItem.metadata = { ...enrichedItem.metadata, completed: task.completed };
             }
           }
           break
@@ -270,7 +284,10 @@ export class FoldersController {
    * Shows the add folder form
    */
   private showAddFolderForm(): void {
-    FoldersView.renderAddFolderForm(this.container)
+    const existing = this.container.querySelector("#folderFormOverlay");
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    FoldersView.renderAddFolderForm(this.container);
   }
 
   /**
@@ -278,10 +295,11 @@ export class FoldersController {
    * @param folderId - The ID of the folder to edit
    */
   private showEditFolderForm(folderId: string): void {
-    const folder = foldersModel.getFolderById(folderId)
-    if (!folder) return
+    const existing = this.container.querySelector("#folderFormOverlay");
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 
-    FoldersView.renderEditFolderForm(this.container, folder)
+    const folder = foldersModel.getFolderById(folderId);
+    if (folder) FoldersView.renderEditFolderForm(this.container, folder);
   }
 
   /**
@@ -289,18 +307,18 @@ export class FoldersController {
    * @param folderId - The ID of the folder to add an item to
    */
   private showAddItemForm(folderId: string): void {
-    FoldersView.closeFormOverlay(this.container, "addItemFormOverlay")
+    const existing = this.container.querySelector("#addItemFormOverlay")
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing)
 
     FoldersView.renderAddItemForm(this.container, folderId)
 
     setTimeout(() => {
       const itemSelect = document.getElementById("itemSelect") as HTMLSelectElement
-      const itemType = document.getElementById("itemType") as HTMLSelectElement
-
+      const itemType   = document.getElementById("itemType")  as HTMLSelectElement
       if (itemSelect && itemType) {
         this.loadItemsForType(itemType.value as FolderItemType, itemSelect)
       }
-    }, 100)
+    }, 50)
   }
 
   /**
@@ -308,44 +326,56 @@ export class FoldersController {
    * @param itemType - The type of items to load
    * @param selectElement - The select element to populate
    */
-  private loadItemsForType(itemType: FolderItemType, selectElement: HTMLSelectElement): void {
-    selectElement.innerHTML = '<option value="">Loading items...</option>'
-    selectElement.disabled = true
+  private async loadItemsForType(itemType: FolderItemType, select: HTMLSelectElement) {
+    select.innerHTML = '<option value="">Loading items...</option>';
+    select.disabled = true;
 
-    let items: any[] = []
+    let items: any[] = [];
+
+    const fetchAndCache = async <T>(fetcher: () => Promise<ApiResponse<T[]>>, key: string) => {
+      const res = await fetcher();
+      if (res.data) {
+        items = res.data as any[];
+        storageService.set(key, items);        // cache
+      }
+    };
 
     try {
-      switch (itemType) { //access from localStorage
+      switch (itemType) {
         case "note": {
-          const savedNotes = localStorage.getItem("notes")
-          if (savedNotes) {
-            items = JSON.parse(savedNotes)
+          items = storageService.get("notes", []);
+          if (items.length === 0 && apiService.isAuthenticated()) {
+            await fetchAndCache(apiService.getNotes.bind(apiService), "notes");
           }
-          break
+          break;
         }
         case "task": {
-          const savedTasks = localStorage.getItem("tasks")
-          if (savedTasks) {
-            items = JSON.parse(savedTasks)
+          items = storageService.get("tasks", []);
+          if (items.length === 0 && apiService.isAuthenticated()) {
+            await fetchAndCache(apiService.getTasks.bind(apiService), "tasks");
           }
-          break
+          break;
         }
         case "habit": {
-          items = getAllHabits()
-          break
+          items = storageService.get("habits", []);
+          if (items.length === 0 && apiService.isAuthenticated()) {
+            await fetchAndCache(apiService.getHabits.bind(apiService), "habits");
+          }
+          break;
         }
         case "transaction": {
-          items = financesModel.getAllTransactions()
-          break
-        }
-      }
-
-      FoldersView.updateItemSelectOptions(selectElement, items)
-    } catch (error) {
-      console.error(`Error loading items for type ${itemType}:`, error)
-      selectElement.innerHTML = '<option value="">Error loading items</option>'
+          items = financesModel.getAllTransactions();
+          if (items.length === 0 && apiService.isAuthenticated()) {
+            const res = await apiService.getTransactions();
+            if (res.data) items = res.data;
+          }
+          break;
+      }}
+    } catch (err) {
+      console.error("loadItemsForType:", err);
     } finally {
-      selectElement.disabled = false
+      FoldersView.updateItemSelectOptions(select, items);
+      select.disabled = false;
     }
   }
 
@@ -354,8 +384,22 @@ export class FoldersController {
    * @param name - The name of the folder
    * @param description - The description of the folder
    */
-  private addFolder(name: string, description: string): void {
-    foldersModel.addFolder(name, description)
+  private async addFolder(name: string, description: string) {
+    const res = await apiService.createFolder(name, description)
+
+    if (res.data) {
+
+      foldersModel.addFolder(
+        res.data.name,
+        res.data.description,
+        res.data.id,
+        res.data.createdAt,
+      )
+    } else {
+
+      foldersModel.addFolder(name, description)
+    }
+
     FoldersView.closeFormOverlay(this.container, "folderFormOverlay")
     this.renderFoldersDashboard()
   }
@@ -366,10 +410,20 @@ export class FoldersController {
    * @param name - The new name of the folder
    * @param description - The new description of the folder
    */
-  private updateFolder(folderId: string, name: string, description: string): void {
-    foldersModel.updateFolder(folderId, { name, description })
+  private async updateFolder(id: string, name: string, description: string) {
+    foldersModel.updateFolder(id, { name, description })
+
+    if (apiService.isAuthenticated()) {
+
+      const single = await apiService.updateFolder(id, { name, description })
+
+      if (single.status === 404) {
+        await apiService.syncFolders(foldersModel.getFolders())
+      }
+    }
+
     FoldersView.closeFormOverlay(this.container, "folderFormOverlay")
-    this.openFolder(folderId)
+    this.openFolder(id)
   }
 
   /**
@@ -403,15 +457,14 @@ export class FoldersController {
    * @param itemId - The ID of the item
    * @param folderId - The ID of the folder
    */
-  private addItemToFolder(itemType: FolderItemType, itemId: string, folderId: string): void {
+  private async addItemToFolder(itemType: FolderItemType, itemId: string, folderId: string): Promise<void> {
     let added = false
 
     switch (itemType) {
       case "note": {
-        const savedNotes = localStorage.getItem("notes")
-        if (savedNotes) {
-          const notes = JSON.parse(savedNotes)
-          const note = notes.find((n: any) => n.id === itemId)
+        const notes = storageService.get<Note[]>("notes", []);
+        const note  = notes.find((n) => n.id === itemId);
+        if (note) {
           if (note) {
             foldersModel.addNoteToFolder(note, folderId)
             added = true
@@ -420,14 +473,11 @@ export class FoldersController {
         break
       }
       case "task": {
-        const savedTasks = localStorage.getItem("tasks")
-        if (savedTasks) {
-          const tasks = JSON.parse(savedTasks)
-          const task = tasks.find((t: any) => t.id === itemId)
-          if (task) {
-            foldersModel.addTaskToFolder(task, folderId)
-            added = true
-          }
+        const tasks = storageService.get<Task[]>("tasks", []);
+        const task  = tasks.find((t) => t.id === itemId);
+        if (task) {
+          foldersModel.addTaskToFolder(task, folderId)
+          added = true
         }
         break
       }
@@ -450,6 +500,11 @@ export class FoldersController {
     }
 
     if (added) {
+      if (apiService.isAuthenticated()) {
+        await apiService.syncFolderItems(foldersModel.getAllFolderItems())
+          .catch(err => console.error("syncFolderItems:", err))
+      }
+
       FoldersView.closeFormOverlay(this.container, "addItemFormOverlay")
       this.openFolder(folderId)
     }
@@ -461,7 +516,13 @@ export class FoldersController {
    * @param folderId - The ID of the folder
    */
   private removeItemFromFolder(itemId: string, folderId: string): void {
-    foldersModel.removeItemFromFolder(itemId, folderId)
+    const removed = foldersModel.removeItemFromFolder(itemId, folderId)
+
+    if (removed && apiService.isAuthenticated()) {
+      apiService.syncFolderItems(foldersModel.getAllFolderItems())
+        .catch(err => console.error("syncFolderItems:", err))
+    }
+
     this.openFolder(folderId)
   }
 
@@ -515,15 +576,12 @@ export class FoldersController {
     items.forEach((item) => {
       switch (itemType) {
         case "task": {
-          const savedTasks = localStorage.getItem("tasks")
-          if (savedTasks) {
-            const tasks = JSON.parse(savedTasks)
-            const task = tasks.find((t: any) => t.id === originalId)
-            if (task) {
-              foldersModel.updateFolderItemMetadata(item.id, {
-                completed: task.completed,
-              })
-            }
+          const tasks = storageService.get<Task[]>("tasks", []);
+          const task  = tasks.find((t) => t.id === originalId);
+          if (task) {
+            foldersModel.updateFolderItemMetadata(item.id, {
+              completed: task.completed,
+            })
           }
           break
         }
@@ -571,3 +629,4 @@ export async function initFolders(): Promise<void> {
     content.innerHTML = "<p>> Error loading folders component</p>"
   }
 }
+

@@ -13,6 +13,8 @@ import { formatDate } from "../../router.js"
 
 import * as habitsModel from "../habits/habits.model.js"
 import { financesModel } from "../finances/finances.model.js"
+import { storageService } from "../../services/storage.service.js";
+import type { Task, Note }         from "../../types.js";
 
 /**
  * Controls profile-related functionality and UI updates.
@@ -144,8 +146,7 @@ export class ProfileController {
     if (habitsRateEl) habitsRateEl.textContent = `${habitsRate}%`
     if (habitsProgressBar) habitsProgressBar.style.width = `${habitsRate}%`
 
-    const tasksData = localStorage.getItem("tasks")
-    const tasks = tasksData ? JSON.parse(tasksData) : []
+    const tasks = storageService.get<Task[]>("tasks", []);
     const completedTasks = tasks.filter((t: any) => t.completed).length
     const tasksRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0
 
@@ -159,8 +160,7 @@ export class ProfileController {
     if (tasksRateEl) tasksRateEl.textContent = `${tasksRate}%`
     if (tasksProgressBar) tasksProgressBar.style.width = `${tasksRate}%`
 
-    const notesData = localStorage.getItem("notes")
-    const notes = notesData ? JSON.parse(notesData) : []
+    const notes = storageService.get<Note[]>("notes", []);
     const notesWithTags = notes.filter((n: any) => n.tags && n.tags.length > 0).length
 
     const notesTotal = document.getElementById("notesTotal")
