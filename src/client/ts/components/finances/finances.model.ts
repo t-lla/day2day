@@ -6,6 +6,9 @@
  * Handles storage, retrieval, and manipulation of financial data.
  */
 
+import { ApiResponse, apiService } from "../../services/api.service.js"
+import { storageService } from "../../services/storage.service.js"
+
 /**
  * Represents a financial account (credit card, bank account, etc.)
  */
@@ -83,13 +86,26 @@ const DEFAULT_CATEGORIES: Category[] = [ //default categories
 
 const DEFAULT_ACCOUNT: Account = { //default account
   id: "default-account",
-  name: "1st account",
+  name: "1st Account",
   type: "debit",
   balance: 0,
   color: "#40e07d",
   currency: "EUR",
   isDefault: true,
 }
+
+/** Si una petición al backend falla, activa el flag offline y devuelve null. */
+async function tryOnline<T>(
+    fn: () => Promise<ApiResponse<T>>,
+  ): Promise<T | null> {
+    const { data, error } = await fn();
+    if (error || data === undefined) {
+      console.warn("[finances] backend error →", error || "no data");
+      localStorage.setItem("finances_offline", "true"); // forza modo offline
+      return null;
+    }
+    return data;
+  }
 
 /**
  * Class for managing financial data
@@ -99,6 +115,12 @@ export class FinancesModel {
   private transactions: Transaction[] = []
   private categories: Category[] = []
   private budgets: Budget[] = []
+  private get isOnline(): boolean {
+    return (
+      !!localStorage.getItem("auth_token") &&
+      localStorage.getItem("finances_offline") !== "true"
+    );
+  }
 
   /**
    * Initializes the finances model by loading data from localStorage
@@ -107,48 +129,79 @@ export class FinancesModel {
     this.loadData()
   }
 
-  /**
-   * Loads financial data from localStorage
+  private emit(evt: string): void {
+    window.dispatchEvent(new CustomEvent(`finances:${evt}`));
+  }
+
+  /**  
+   * Loads the data.  
+   * – if there no session -> all offline with localStorage
+   * – if there's a token -> Nest API + ddbb
    */
-  private loadData(): void {
-    try {
-      const accountsData = localStorage.getItem("finances_accounts")
-      const transactionsData = localStorage.getItem("finances_transactions")
-      const categoriesData = localStorage.getItem("finances_categories")
-      const budgetsData = localStorage.getItem("finances_budgets")
+  private async loadData(): Promise<void> {
+    if (!this.isOnline) {
+      this.accounts     = storageService.get<Account[]>("finances_accounts", [DEFAULT_ACCOUNT])
+      this.transactions = storageService.get<Transaction[]>("finances_transactions", [])
+      this.categories   = storageService.get<Category[]>("finances_categories", DEFAULT_CATEGORIES)
+      this.budgets      = storageService.get<Budget[]>("finances_budgets", [])
 
-      this.accounts = accountsData ? JSON.parse(accountsData) : [DEFAULT_ACCOUNT]
-      this.transactions = transactionsData ? JSON.parse(transactionsData) : []
-      this.categories = categoriesData ? JSON.parse(categoriesData) : DEFAULT_CATEGORIES
-      this.budgets = budgetsData ? JSON.parse(budgetsData) : []
-
-      if (this.accounts.length === 0) {
-        this.accounts = [DEFAULT_ACCOUNT]
-      }
-
-      if (this.categories.length === 0) {
-        this.categories = DEFAULT_CATEGORIES
-      }
-
+      if (this.accounts.length === 0)  this.accounts  = [DEFAULT_ACCOUNT]
+      if (this.categories.length === 0) this.categories = DEFAULT_CATEGORIES
       this.saveData()
-    } catch (error) {
-      console.error("Error loading finances data:", error)
-      this.accounts = [DEFAULT_ACCOUNT]
-      this.categories = DEFAULT_CATEGORIES
-      this.transactions = []
-      this.budgets = []
-      this.saveData()
+      return
     }
+
+    const [a, c, t, b] = await Promise.all([
+      apiService.getAccounts(),
+      apiService.getCategories(),
+      apiService.getTransactions(),
+      apiService.getBudgets(),
+    ])
+
+    this.accounts = a.data ?? []
+    this.categories = c.data ?? []
+    this.transactions = t.data ?? []
+    this.budgets = b.data ?? []
+    this.saveData()
+  }
+
+  /** Replace every local account with the array you got from the API */
+  setAccounts(newAccounts: Account[]): void {
+    this.accounts = [...newAccounts];
+    this.saveData();
+  }
+
+  /** Replace every local category with the array you got from the API */
+  setCategories(newCategories: Category[]): void {
+    this.categories = [...newCategories];
+    this.saveData();
+  }
+
+  /** Replace every local transaction with the array you got from the API */
+  setTransactions(newTransactions: Transaction[]): void {
+    this.transactions = [...newTransactions];
+    this.saveData();
   }
 
   /**
    * Saves financial data to localStorage
    */
-  private saveData(): void {
-    localStorage.setItem("finances_accounts", JSON.stringify(this.accounts))
-    localStorage.setItem("finances_transactions", JSON.stringify(this.transactions))
-    localStorage.setItem("finances_categories", JSON.stringify(this.categories))
-    localStorage.setItem("finances_budgets", JSON.stringify(this.budgets))
+  private async saveData(): Promise<void> {
+    storageService.set("finances_accounts", this.accounts);
+    storageService.set("finances_transactions", this.transactions);
+    storageService.set("finances_categories", this.categories);
+    storageService.set("finances_budgets", this.budgets);
+
+    if (this.isOnline) {
+      await tryOnline(() =>
+        apiService.syncFinances({
+          accounts: this.accounts,
+          categories: this.categories,
+          transactions: this.transactions,
+          budgets: this.budgets,
+        }),
+      );
+    }
   }
 
   /**
@@ -182,22 +235,28 @@ export class FinancesModel {
    * @param account - The account to add
    * @returns The added account
    */
-  addAccount(account: Omit<Account, "id">): Account {
-    const newAccount: Account = {
+  async addAccount(account: Omit<Account, 'id'>): Promise<Account> {
+    if (!this.isOnline) {
+      const offlineAcc: Account = { ...account, id: Date.now().toString() };
+      if (this.accounts.length === 0 || offlineAcc.isDefault) {
+        this.accounts.forEach(a => (a.isDefault = false));
+        offlineAcc.isDefault = true;
+      }
+      this.accounts.push(offlineAcc);
+      this.saveData();
+      return offlineAcc;
+    }
+
+    const { data, error } = await apiService.createAccount({
       ...account,
-      id: Date.now().toString(),
-    }
+      userId: localStorage.getItem('current_user_id')!,
+    });
+    if (error) throw new Error(error);
 
-    if (this.accounts.length === 0 || newAccount.isDefault) {
-      this.accounts.forEach((acc) => {
-        acc.isDefault = false
-      })
-      newAccount.isDefault = true
-    }
-
-    this.accounts.push(newAccount)
-    this.saveData()
-    return newAccount
+    if (data!.isDefault) this.accounts.forEach(a => (a.isDefault = false));
+    this.accounts.push(data!);
+    this.saveData();
+    return data!;
   }
 
   /**
@@ -255,6 +314,7 @@ export class FinancesModel {
     return [...this.categories]
   }
 
+
   /**
    * Gets categories by type
    * @param type - The category type ('income' or 'expense')
@@ -278,15 +338,28 @@ export class FinancesModel {
    * @param category - The category to add
    * @returns The added category
    */
-  addCategory(category: Omit<Category, "id">): Category {
-    const newCategory: Category = {
-      ...category,
-      id: `${category.type}-${Date.now()}`,
+  async addCategory(category: Omit<Category, "id">): Promise<Category> {
+    if (!this.isOnline) {
+      const localCat: Category = {
+        ...category,
+        id: `${category.type}-${Date.now()}`,
+      }
+      this.categories.push(localCat)
+      this.saveData()
+      window.dispatchEvent(new CustomEvent("finances:categoriesUpdated"))
+      return localCat
     }
 
-    this.categories.push(newCategory)
+    const { data, error } = await apiService.createCategory({
+      ...category,
+      userId: localStorage.getItem("current_user_id")!,
+    })
+    if (error) throw new Error(error)
+
+    this.categories.push(data!)
     this.saveData()
-    return newCategory
+    window.dispatchEvent(new CustomEvent("finances:categoriesUpdated"))
+    return data!
   }
 
   /**
@@ -359,15 +432,12 @@ export class FinancesModel {
    * @returns Array of transactions for the month and year
    */
   getTransactionsByMonth(month: number, year: number): Transaction[] {
-    const startDate = new Date(year, month, 1)
-    const endDate = new Date(year, month + 1, 0)
-
     return this.transactions
-      .filter((transaction) => {
-        const transactionDate = new Date(transaction.date)
-        return transactionDate >= startDate && transactionDate <= endDate
+      .filter(t => {
+        const d = new Date(t.date);
+        return d.getMonth() === month && d.getFullYear() === year;
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   /**
@@ -384,17 +454,35 @@ export class FinancesModel {
    * @param transaction - The transaction to add
    * @returns The added transaction
    */
-  addTransaction(transaction: Omit<Transaction, "id">): Transaction {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: Date.now().toString(),
-    }
+  async addTransaction(
+    transaction: Omit<Transaction, "id">,
+    ): Promise<Transaction> {
 
-    this.transactions.push(newTransaction)
-    this.updateAccountBalances(newTransaction)
-    this.saveData()
-    return newTransaction
-  }
+      const localTx: Transaction = { ...transaction, id: Date.now().toString() };
+
+      if (this.isOnline) {
+        const created = await tryOnline(() =>
+          apiService.createTransaction({
+            ...transaction,
+            userId: localStorage.getItem("current_user_id")!,
+          }),
+        );
+
+        if (created) {
+          this.transactions.push(created);
+          this.updateAccountBalances(created);
+          this.saveData();
+          this.emit("transactionsUpdated");
+          return created;
+        }
+      }
+
+      this.transactions.push(localTx);
+      this.updateAccountBalances(localTx);
+      this.saveData();
+      this.emit("transactionsUpdated");
+      return localTx;
+    }
 
   /**
    * Updates an existing transaction
@@ -415,6 +503,7 @@ export class FinancesModel {
     this.updateAccountBalances(newTransaction)
 
     this.saveData()
+    this.emit("transactionsUpdated");
     return this.transactions[index]
   }
 
@@ -431,6 +520,7 @@ export class FinancesModel {
 
     this.transactions = this.transactions.filter((t) => t.id !== id)
     this.saveData()
+    this.emit("transactionsUpdated");
     return true
   }
 
@@ -486,6 +576,14 @@ export class FinancesModel {
    * @returns The budget
    */
   setBudget(categoryId: string, month: number, year: number, amount: number): Budget {
+    apiService.createBudget({
+      userId: localStorage.getItem("current_user_id")!,
+      categoryId,
+      month,
+      year,
+      amount,
+    })
+
     const existingIndex = this.budgets.findIndex(
       (budget) => budget.categoryId === categoryId && budget.month === month && budget.year === year,
     )
@@ -499,6 +597,7 @@ export class FinancesModel {
     }
 
     this.saveData()
+    this.emit("transactionsUpdated");
     return budget
   }
 
@@ -685,6 +784,7 @@ export class FinancesModel {
 
     return transactionsToCreate
   }
+  
 }
 
 export const financesModel = new FinancesModel()

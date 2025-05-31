@@ -13,6 +13,7 @@
 
 import type { Habit } from "./types.js"
 import * as model from "./components/habits/habits.model.js"
+import { apiService } from "./services/api.service.js"
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -164,24 +165,46 @@ function createDaySelectionModal(
   modal.querySelector(".modal-close-btn")?.addEventListener("click", closeModal)
   modal.querySelector(".modal-cancel-btn")?.addEventListener("click", closeModal)
   
-  const saveBtn = modal.querySelector(".modal-save-btn")
-  if (saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      const checkboxes = modal.querySelectorAll(".habit-checkbox") as NodeListOf<HTMLInputElement>
+  const saveBtn = modal.querySelector(".modal-save-btn");
+if (saveBtn) {
+  saveBtn.addEventListener("click", async () => {
+    const checkboxes = modal.querySelectorAll(".habit-checkbox") as NodeListOf<HTMLInputElement>;
 
-      checkboxes.forEach((checkbox) => {
-        const habitId = checkbox.closest(".habit-item")?.getAttribute("data-id")
-        if (habitId) {
-          if (checkbox.checked) {
-            model.markComplete(habitId, dateObj.toISOString())
-          } else {
-            model.removeCompletion(habitId, dateKey)
-          }
+    const prevCompleted = getHabitsCompletedOnDay(habits, dateKey);
+
+    const [day, month, year] = dateKey.split("-").map(Number);
+    const apiDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    for (const checkbox of Array.from(checkboxes)) {
+      const habitId = checkbox.closest(".habit-item")?.getAttribute("data-id");
+      if (!habitId) continue;
+
+      const wasCompleted = !!prevCompleted[habitId];
+      const nowChecked = checkbox.checked;
+
+      if (nowChecked && !wasCompleted) {
+
+        const res = await apiService.completeHabit(habitId, apiDate);
+        if (res.status === 200 && res.data?.success) {
+          model.markComplete(habitId, dateObj.toISOString());
+        } else {
+          console.warn(`Error marcando complete para ${habitId} en ${apiDate}`, res.error);
         }
-      })
+      } else if (!nowChecked && wasCompleted) {
 
-      closeModal()
-    })
+        const res = await apiService.uncompleteHabit(habitId, apiDate);
+        if (res.status === 200 && res.data?.success) {
+          model.removeCompletion(habitId, dateKey);
+        } else {
+          console.warn(`Error desmarcando complete para ${habitId} en ${apiDate}`, res.error);
+        }
+      }
+
+    }
+
+    document.dispatchEvent(new CustomEvent("habits-updated"));
+    closeModal();
+  });
   }
 }
 

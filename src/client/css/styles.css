@@ -1668,7 +1668,6 @@ main#app {
   color: white;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .folders-grid,
   .folder-items-grid {
@@ -1909,4 +1908,73 @@ main#app {
   .theme-option {
     max-width: 100%;
   }
+}
+
+
+
+
+
+
+
+
+
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+  color: var(--text-color-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close:hover {
+  color: var(--accent-color);
+}
+
+.error-message {
+  color: var(--error-color);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  min-height: 1.2rem;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.sync-indicator {
+  font-size: 0.8rem;
+}
+
+.status-online   .sync-indicator { color: var(--primary-green); }
+.status-offline  .sync-indicator { color: var(--error-color); }
+.status-warning  .sync-indicator { color: var(--warning-color); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.status-syncing  .sync-indicator {
+  color: var(--primary-green);
+  animation: pulse 1s infinite;
 }

@@ -14,6 +14,9 @@ import { initSectionSelector } from "./components/section-selector/section-selec
 import { renderMiniHeader, hideMiniHeader } from "./components/mini-header.js"
 import { initFolders } from "./components/folders/folders.controller.js"
 import { initProfile } from "./components/profile/profile.controller.js"
+import { apiService } from "./services/api.service.js"
+import { NotesEnhanced } from "./enhanced/notes.enhanced.js"
+import { TasksEnhanced } from "./enhanced/tasks.enhanced.js"
 
 let portalVisible = true
 let currentSection: string | null = null
@@ -86,7 +89,7 @@ export function initRouter(): void {
  * @example
  * loadSection('tasks');
  */
-export function loadSection(section: string): void {
+export async function loadSection(section: string): Promise<void> {
   const content = document.getElementById("content")
   const portal = document.getElementById("portalScreen")
 
@@ -106,28 +109,43 @@ export function loadSection(section: string): void {
   }
 
   currentSection = section
-
   renderMiniHeader(section)
 
   switch (section) {
     case "notes":
-      initNotes()
+      if (apiService.isAuthenticated()) {
+        const ctl = new NotesEnhanced()
+        await ctl.init("#content")
+      } else {
+        await initNotes()
+      }
       break
+
     case "tasks":
-      initTasks()
+      if (apiService.isAuthenticated()) {
+        const ctl = new TasksEnhanced()
+        await ctl.init("#content")
+      } else {
+        await initTasks()
+      }
       break
+
     case "habits":
-      initHabits()
+      await initHabits()
       break
+
     case "finances":
       initFinances()
       break
+
     case "folders":
       initFolders()
       break
+
     case "profile":
       initProfile()
       break
+
     default:
       initSectionSelector()
   }

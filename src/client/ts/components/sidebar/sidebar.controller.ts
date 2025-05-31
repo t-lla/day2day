@@ -6,21 +6,21 @@
  * section toggling, keyboard navigation, and portal visibility.
  * Coordinates with the SidebarView for UI updates and the router for loading sections.
  */
-import { loadSection, navigateToApp } from "../../router.js";
-import { SidebarView } from "./sidebar.view.js";
+import { loadSection, navigateToApp } from "../../router.js"
+import { SidebarView } from "./sidebar.view.js"
 
 /** Singleton instance of the SidebarController to maintain navigation state. */
-let sidebarController: SidebarController | null = null;
+let sidebarController: SidebarController | null = null
 
 /**
  * Manages the sidebar UI behavior, including selecting and loading sections,
  * highlighting items, and controlling portal view state.
  */
 export class SidebarController {
-  private treeItems: HTMLLIElement[] = [];
-  private selectedIndex = -1;
-  private currentSection: string | null = null;
-  private portalVisible = true;
+  private treeItems: HTMLLIElement[] = []
+  private selectedIndex = -1
+  private currentSection: string | null = null
+  private portalVisible = true
 
   /**
    * Renders the sidebar and sets up click handlers on each tree item.
@@ -32,22 +32,20 @@ export class SidebarController {
    * await controller.init('#sidebar');
    */
   async init(selector: string): Promise<void> {
-    await SidebarView.render(selector);
+    await SidebarView.render(selector)
 
-    const treeSide = document.getElementById("treeSide");
+    const treeSide = document.getElementById("treeSide")
     if (!treeSide) {
-      console.error("Sidebar container (#treeSide) not found.");
-      return;
+      console.error("Sidebar container (#treeSide) not found.")
+      return
     }
-    this.treeItems = Array.from(
-      treeSide.querySelectorAll("li")
-    ) as HTMLLIElement[];
+    this.treeItems = Array.from(treeSide.querySelectorAll("li")) as HTMLLIElement[]
 
     this.treeItems.forEach((item, index) => {
       item.addEventListener("click", () => {
-        this.toggleSectionAt(index);
-      });
-    });
+        this.toggleSectionAt(index)
+      })
+    })
   }
 
   /**
@@ -59,27 +57,27 @@ export class SidebarController {
    * controller.toggleSectionAt(0);
    */
   toggleSectionAt(index: number): void {
-    const item = this.treeItems[index];
-    const section = item?.dataset.section;
-    if (!section) return;
+    const item = this.treeItems[index]
+    const section = item?.dataset.section
+    if (!section) return
 
-    const portal = document.getElementById("portalScreen")!;
-    const content = document.getElementById("content")!;
+    const portal = document.getElementById("portalScreen")!
+    const content = document.getElementById("content")!
 
     if (this.currentSection === section) {
-      this.currentSection = null;
-      this.highlightSelection(-1);
-      content.innerHTML = "";
-      content.classList.add("hidden");
+      this.currentSection = null
+      this.highlightSelection(-1)
+      content.innerHTML = ""
+      content.classList.add("hidden")
       if (this.portalVisible) {
-        portal.classList.remove("hidden");
+        portal.classList.remove("hidden")
       } else {
-        navigateToApp();
+        navigateToApp()
       }
     } else {
-      this.highlightSelection(index);
-      loadSection(section);
-      this.currentSection = section;
+      this.highlightSelection(index)
+      loadSection(section)
+      this.currentSection = section
     }
   }
 
@@ -89,29 +87,28 @@ export class SidebarController {
    * @param index - Index of the item to highlight, or -1 to clear selection.
    */
   highlightSelection(index: number): void {
-    SidebarView.highlightSelection(index, this.treeItems);
-    this.selectedIndex = index;
+    SidebarView.highlightSelection(index, this.treeItems)
+    this.selectedIndex = index
   }
 
   /** Moves the selection to the next sidebar item in a cyclic manner. */
   nextSidebarItem(): void {
-    if (this.treeItems.length === 0) return;
-    this.selectedIndex = (this.selectedIndex + 1) % this.treeItems.length;
-    this.highlightSelection(this.selectedIndex);
+    if (this.treeItems.length === 0) return
+    this.selectedIndex = (this.selectedIndex + 1) % this.treeItems.length
+    this.highlightSelection(this.selectedIndex)
   }
 
   /** Moves the selection to the previous sidebar item in a cyclic manner. */
   prevSidebarItem(): void {
-    if (this.treeItems.length === 0) return;
-    this.selectedIndex =
-      (this.selectedIndex - 1 + this.treeItems.length) % this.treeItems.length;
-    this.highlightSelection(this.selectedIndex);
+    if (this.treeItems.length === 0) return
+    this.selectedIndex = (this.selectedIndex - 1 + this.treeItems.length) % this.treeItems.length
+    this.highlightSelection(this.selectedIndex)
   }
 
   /** Activates the currently selected sidebar item, toggling its section. */
   activateSidebarItem(): void {
-    if (this.treeItems.length === 0) return;
-    this.toggleSectionAt(this.selectedIndex);
+    if (this.treeItems.length === 0) return
+    this.toggleSectionAt(this.selectedIndex)
   }
 
   /**
@@ -120,7 +117,7 @@ export class SidebarController {
    * @param visible - True to keep portal visible; false to hide permanently after skip.
    */
   setPortalVisible(visible: boolean): void {
-    this.portalVisible = visible;
+    this.portalVisible = visible
   }
 }
 
@@ -132,24 +129,24 @@ export class SidebarController {
  */
 export function initSidebar(): Promise<void> {
   if (!sidebarController) {
-    sidebarController = new SidebarController();
+    sidebarController = new SidebarController()
   }
-  return sidebarController.init("#sidebar");
+  return sidebarController.init("#sidebar")
 }
 
 /** Moves sidebar selection to the next item. */
 export function nextSidebarItem(): void {
-  sidebarController?.nextSidebarItem();
+  sidebarController?.nextSidebarItem()
 }
 
 /** Moves sidebar selection to the previous item. */
 export function prevSidebarItem(): void {
-  sidebarController?.prevSidebarItem();
+  sidebarController?.prevSidebarItem()
 }
 
 /** Activates the currently selected sidebar item. */
 export function activateSidebarItem(): void {
-  sidebarController?.activateSidebarItem();
+  sidebarController?.activateSidebarItem()
 }
 
 /**
@@ -160,5 +157,5 @@ export function activateSidebarItem(): void {
  * setPortalVisible(false);
  */
 export function setPortalVisible(visible: boolean): void {
-  sidebarController?.setPortalVisible(visible);
+  sidebarController?.setPortalVisible(visible)
 }

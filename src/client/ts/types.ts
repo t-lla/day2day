@@ -107,6 +107,9 @@ export interface Habit {
 
   /** ISO timestamp string when the habit was created. */
   createdAt: string
+
+  /** racha actual de días consecutivos */
+  streak?: number
 }
 
 /**
@@ -249,4 +252,9 @@ export interface Budget {
 
   /** Budget amount. */
   amount: number
+}
+
+export interface ApiResponse<T> {
+  data?: T;
+  error?: string;
 }

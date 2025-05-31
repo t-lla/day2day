@@ -6,6 +6,7 @@
  * Handles storage, retrieval, and manipulation of folder data.
  */
 
+import { storageService } from "../../services/storage.service.js"
 import type { Note } from "../../types.js"
 import type { Task } from "../../types.js"
 import type { Habit } from "../../types.js"
@@ -65,26 +66,12 @@ export class FoldersModel {
    * Loads folder data from localStorage
    */
   private loadData(): void {
-    try {
-      const foldersData = localStorage.getItem("folders")
-      const itemsData = localStorage.getItem("folder_items")
+    this.folders = storageService.get<Folder[]>("folders", []);
+    this.items = storageService.get<FolderItem[]>("folder_items", []);
 
-      this.folders = foldersData ? JSON.parse(foldersData) : []
-      this.items = itemsData ? JSON.parse(itemsData) : []
-
-      if (this.folders.length === 0) {
-        this.createDefaultFolders()
-      }
-
-      this.saveData()
-    } catch (error) {
-      console.error("Error loading folders data:", error)
-      this.folders = []
-      this.items = []
-      this.createDefaultFolders()
-      this.saveData()
-    }
-  }
+    if (this.folders.length === 0) this.createDefaultFolders();
+    this.saveData();
+}
 
   /**
    * Creates default folders
@@ -112,16 +99,18 @@ export class FoldersModel {
     ]
   }
 
+  /** Replace every local folder with the array you got from the API */
+  setFolders(newFolders: Folder[]): void {
+    this.folders = [...newFolders];
+    this.saveData();
+  }
+
   /**
    * Saves folder data to localStorage
    */
   private saveData(): void {
-    try {
-      localStorage.setItem("folders", JSON.stringify(this.folders))
-      localStorage.setItem("folder_items", JSON.stringify(this.items))
-    } catch (error) {
-      console.error("Error saving folders data:", error)
-    }
+    storageService.set("folders", this.folders);
+    storageService.set("folder_items", this.items);
   }
 
   /**
@@ -147,19 +136,20 @@ export class FoldersModel {
    * @param description - The folder description
    * @returns The added folder
    */
-  addFolder(name: string, description: string): Folder {
-    const now = new Date().toISOString()
-    const id = `folder-${Date.now()}`
-
+  addFolder(
+    name: string,
+    description: string,
+    id: string = `folder-${Date.now()}`,
+    createdAt: string = new Date().toISOString(),
+  ): Folder {
     const newFolder: Folder = {
       id,
       name: name.trim(),
       description: description.trim(),
-      createdAt: now,
-      updatedAt: now,
+      createdAt,
+      updatedAt: createdAt,
       itemIds: [],
     }
-
     this.folders.push(newFolder)
     this.saveData()
     return newFolder

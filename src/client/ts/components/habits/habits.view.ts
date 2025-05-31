@@ -2,12 +2,13 @@ import { calculateStreak } from "./habits.model.js";
 import { formatDate } from "../../router.js";
 import { Habit } from "../../types.js";
 
-/** Renders the list of habits with complete/uncomplete toggle buttons. */
+/** Renders the list of habits with view/complete/delete buttons. */
 export function renderHabitsList(
   container: HTMLElement,
   habits: Habit[],
   onView: (id: string) => void,
-  onToggleComplete: (id: string) => void
+  onToggleComplete: (id: string) => void,
+  onDelete: (id: string) => void
 ) {
   if (habits.length === 0) {
     container.innerHTML = `<p>> no habits found. add one to get started.</p>`;
@@ -19,7 +20,12 @@ export function renderHabitsList(
     <h3>> your habits</h3>
     <table class="habits-table">
       <thead>
-        <tr><th>name</th><th>frequency</th><th>streak</th><th>actions</th></tr>
+        <tr>
+          <th>name</th>
+          <th>frequency</th>
+          <th>streak</th>
+          <th>actions</th>
+        </tr>
       </thead>
       <tbody>`;
 
@@ -38,19 +44,28 @@ export function renderHabitsList(
         <td>
           <button class="action-btn view-btn">view</button>
           <button class="${btnClass}">${btnText}</button>
+          <button class="action-btn delete-btn">delete</button> <!-- ← Botón de delete añadido -->
         </td>
       </tr>`;
   });
 
-  html += `</tbody></table>`;
+  html += `
+      </tbody>
+    </table>`;
+
   container.innerHTML = html;
 
   container.querySelectorAll("tr[data-id]").forEach(row => {
     const id = row.getAttribute("data-id")!;
-    row.querySelector<HTMLButtonElement>(".view-btn")?.addEventListener("click", () => onView(id));
-    // both complete-btn and completed-btn call same toggle handler
+
+    row.querySelector<HTMLButtonElement>(".view-btn")
+      ?.addEventListener("click", () => onView(id));
+
     row.querySelector<HTMLButtonElement>(".complete-btn, .completed-btn")
       ?.addEventListener("click", () => onToggleComplete(id));
+
+    row.querySelector<HTMLButtonElement>(".delete-btn")
+      ?.addEventListener("click", () => onDelete(id));
   });
 }
 
@@ -60,7 +75,7 @@ export function renderStats(
   completedToday: number
 ) {
   const rate = total > 0 ? Math.round((completedToday / total) * 100) : 0;
-    container.innerHTML = `
+  container.innerHTML = `
     <h3>> stats</h3>
     <div class="stats-grid">
       <div class="stat-box"><div class="stat-value">${total}</div><div class="stat-label">total habits</div></div>
@@ -70,7 +85,6 @@ export function renderStats(
 
     <h3>> progress</h3>
     <div id="habitHeatmap" class="heatmap-container"></div>`;
-
 }
 
 export function renderHabitDetail(
